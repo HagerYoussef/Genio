@@ -170,14 +170,23 @@ class _ChatBotState extends State<NewChatBot> {
     });
   }
 
-  void _sendMessage() {
+  void _sendMessage() async{
     if (_controller.text.trim().isEmpty || _userId == null || _chatId == null) {
       print("⚠️ Cannot send message: Missing data");
       return;
     }
 
     final message = _controller.text.trim();
+    final prefs = await SharedPreferences.getInstance();
+    if (!prefs.containsKey('_preview_$_chatId')) {
+      final preview = message.split(' ').take(10).join(' ');
+      final timestamp = DateTime.now().toIso8601String();
+      await prefs.setString('_preview_$_chatId', preview);
+      await prefs.setString('_preview_time_$_chatId', timestamp);
+    }
+
     _socket.emit("userMessage", [message, _userId, _chatId]);
+
 
     setState(() {
       _messages.add({
@@ -408,6 +417,11 @@ class _ChatBotState extends State<NewChatBot> {
               child: TextField(
                 controller: _controller,
                 onSubmitted: (_) => _sendMessage(),
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 15,
+                  color: Colors.black,
+                ),
                 decoration: InputDecoration(
                   hintText: "Message Genio AI",
                   hintStyle: GoogleFonts.poppins(

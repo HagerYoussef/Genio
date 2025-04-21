@@ -1,11 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:genio_ai/features/account/switch.dart';
+import 'package:genio_ai/features/home_screen/homescreen.dart';
 import 'package:genio_ai/features/login/presentation/widgets/text_auth.dart';
 import 'package:genio_ai/features/profile/profile_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class AccountSettings extends StatelessWidget {
+class AccountSettings extends StatefulWidget {
   static String routeName = 'Account Settings';
   const AccountSettings({super.key});
+
+  @override
+  State<AccountSettings> createState() => _AccountSettingsState();
+}
+
+class _AccountSettingsState extends State<AccountSettings> {
+  String? profileImageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    loadProfileImage();
+  }
+
+  void loadProfileImage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      profileImageUrl = prefs.getString('profile_image_url');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -17,7 +40,7 @@ class AccountSettings extends StatelessWidget {
         centerTitle: true,
         leading: IconButton(
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.pushNamed(context, HomeScreen.routeName);
           },
           icon: ImageIcon(
             AssetImage('assets/images/arrowback.png'),
@@ -26,8 +49,11 @@ class AccountSettings extends StatelessWidget {
         ),
         actions: [
           CircleAvatar(
-            backgroundImage: AssetImage('assets/images/user.png'),
             radius: 20,
+            backgroundColor: Colors.white,
+            backgroundImage: profileImageUrl != null
+                ? NetworkImage(profileImageUrl!)
+                : const AssetImage('assets/images/img.png') as ImageProvider,
           ),
           SizedBox(width: 20),
         ],
@@ -40,10 +66,10 @@ class AccountSettings extends StatelessWidget {
           _buildSwitchTile('Notifications', Icons.notifications, true),
           _buildTile('Delete Account','assets/images/user-minus.png',context),
 
-          SizedBox(height: 20),
-          _buildSectionTitle('Settings'),
-          _buildSwitchTile('Light mode', Icons.light_mode, false),
-          _buildTileWithValue('Languages', Icons.language, 'English'),
+          //SizedBox(height: 20),
+          //_buildSectionTitle('Settings'),
+          //_buildSwitchTile('Light mode', Icons.light_mode, false),
+          //_buildTileWithValue('Languages', Icons.language, 'English'),
 
           SizedBox(height: 20),
           _buildSectionTitle('Support'),

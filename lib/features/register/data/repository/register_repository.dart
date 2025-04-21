@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
 import '../../models/user_signup_model.dart';
 
 class AuthRepository {
@@ -18,11 +17,13 @@ class AuthRepository {
 
       if (response.statusCode == 201) {
         return {"success": true, "message": "Account created successfully!"};
+      } else if (response.statusCode == 400 && responseData['message'] != null) {
+        return {"success": false, "message": 'Email is already exists!'};
       } else {
-        return {"success": false, "message": responseData["message"] ?? "Something went wrong!"};
+        return {"success": false, "message": "Unexpected error occurred!"};
       }
     } catch (error) {
-      return {"success": false, "message": "Failed to connect to the server!"};
+      return {"success": false, "message": "Something went wrong!"};
     }
   }
 }

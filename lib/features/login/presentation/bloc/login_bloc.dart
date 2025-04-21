@@ -62,7 +62,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
         emit(AuthSuccess(userId: userId));
       } else {
-        emit(AuthFailure(response['message'] ?? "Login failed"));
+        emit(AuthFailure('Invalid Email or Password'));
       }
     } catch (e) {
       emit(AuthFailure("Unexpected error: ${e.toString()}"));

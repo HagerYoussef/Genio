@@ -3,12 +3,33 @@ import 'package:genio_ai/features/account/account_settings.dart';
 import 'package:genio_ai/features/history/history_screen.dart';
 import 'package:genio_ai/features/home_screen/presentation/widgets/ai_tools_container.dart';
 import 'package:genio_ai/features/other_models/other_models.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../chat_bot/chatbot.dart';
 import '../login/presentation/widgets/text_auth.dart';
 import '../upgrade_screen.dart';
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   static const routeName ='HomeScreen';
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String? profileImageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    loadProfileImage(); // ← كل مرة تفتح الصفحة أو drawer
+  }
+
+  void loadProfileImage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      profileImageUrl = prefs.getString('profile_image_url');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +116,7 @@ class HomeScreen extends StatelessWidget {
             Builder(
               builder: (context) {
                 return IconButton(
-                  onPressed: () {
+                  onPressed: (){
                     Scaffold.of(context).openEndDrawer();
                   },
                   icon: const ImageIcon(AssetImage('assets/images/edit.png'),color: Color(0xff0047AB),size: 24,),

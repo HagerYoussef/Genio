@@ -4,8 +4,28 @@ import 'package:genio_ai/features/login/presentation/widgets/text_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
-class OtherModels extends StatelessWidget {
+class OtherModels extends StatefulWidget {
   const OtherModels({super.key});
+
+  @override
+  State<OtherModels> createState() => _OtherModelsState();
+}
+
+class _OtherModelsState extends State<OtherModels> {
+  String? profileImageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    loadProfileImage();
+  }
+
+  void loadProfileImage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      profileImageUrl = prefs.getString('profile_image_url');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +46,10 @@ class OtherModels extends StatelessWidget {
               child: Row(
                 children: [
                   CircleAvatar(
-                    backgroundImage: AssetImage('assets/images/user.png'),
+                    radius: 20,
+                    backgroundImage: profileImageUrl != null
+                        ? NetworkImage(profileImageUrl!)
+                        : const AssetImage('assets/images/img.png') as ImageProvider,
                   ),
                   SizedBox(width: 10),
                   TextAuth(text: 'View Profile', size: 16, fontWeight: FontWeight.w500, color: Color(0XFF0047AB))

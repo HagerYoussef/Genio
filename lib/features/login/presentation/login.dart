@@ -101,23 +101,14 @@ class Login extends StatelessWidget {
                           context: context,
                           type: QuickAlertType.error,
                           title: 'Login Failed',
-                          widget: Text(
-                            state.error,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          cancelBtnText: 'Try again',
-                          cancelBtnTextStyle: GoogleFonts.poppins(
+                          text: 'Invalid Email or Password',
+                          confirmBtnText: 'Try Again',
+                          confirmBtnColor: const Color(0xFF0047AB),
+                          confirmBtnTextStyle: GoogleFonts.poppins(
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
                             color: Colors.white,
                           ),
-                          onConfirmBtnTap: () => Navigator.of(context).pop(),
                         );
                       }
                     },
