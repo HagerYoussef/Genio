@@ -32,15 +32,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
     _controller.forward();
 
-    Timer(Duration(seconds: 4), _navigateNext); // ✅ صح كده
+    Timer(Duration(seconds: 4), _navigateNext);
   }
-
 
   Future<void> _navigateNext() async {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString('userId');
     final onboardingDone = prefs.getBool('onboarding_done') ?? false;
-
     if (!onboardingDone) {
       Navigator.pushReplacementNamed(context, OnBoardingScreen.routeName);
     } else if (userId != null && userId.isNotEmpty) {
