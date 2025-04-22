@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:genio_ai/features/chat_bot/new_chat.dart';
+import 'package:genio_ai/features/code_generator/code_generator_screen.dart';
+import 'package:genio_ai/features/email_writer/email_writer_screen.dart';
+import 'package:genio_ai/features/essay_writer/essay_writer_screen.dart';
+import 'package:genio_ai/features/image_generation/image_generation_screen.dart';
 import 'package:genio_ai/features/login/presentation/widgets/text_auth.dart';
+import 'package:genio_ai/features/profile/profile_screen.dart';
+import 'package:genio_ai/features/text_summerizer/text_summerizer_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
@@ -35,25 +41,30 @@ class _OtherModelsState extends State<OtherModels> {
         child: ListView(
           padding: EdgeInsets.symmetric(vertical: 35),
           children: [
-            Container(
-              padding: EdgeInsets.only(
-                left: 18,
-                right: 18,
-                top: 20,
-                bottom: 10
-              ),
-              color: Color(0xFFF0F8FF),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundImage: profileImageUrl != null
-                        ? NetworkImage(profileImageUrl!)
-                        : const AssetImage('assets/images/img.png') as ImageProvider,
-                  ),
-                  SizedBox(width: 10),
-                  TextAuth(text: 'View Profile', size: 16, fontWeight: FontWeight.w500, color: Color(0XFF0047AB))
-                ],
+            GestureDetector(
+              onTap: (){
+                Navigator.pushNamed(context, ProfileScreen.routeName);
+              },
+              child: Container(
+                padding: EdgeInsets.only(
+                  left: 18,
+                  right: 18,
+                  top: 20,
+                  bottom: 10
+                ),
+                color: Color(0xFFF0F8FF),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundImage: profileImageUrl != null
+                          ? NetworkImage(profileImageUrl!)
+                          : const AssetImage('assets/images/img.png') as ImageProvider,
+                    ),
+                    SizedBox(width: 10),
+                    TextAuth(text: 'View Profile', size: 16, fontWeight: FontWeight.w500, color: Color(0XFF0047AB))
+                  ],
+                ),
               ),
             ),
             Divider(
@@ -69,36 +80,45 @@ class _OtherModelsState extends State<OtherModels> {
               context,
               icon: 'assets/images/chatbot.png',
               title: 'Chat Bot',
+              route: NewChatBot.routeName
             ),
             _buildFeatureTile(
               context,
               icon: 'assets/images/image generation.png',
               title: 'image generation',
+                route: ImageGeneration.routeName
             ),
             _buildFeatureTile(
               context,
               icon: 'assets/images/Code Generator.png',
               title: 'Code Generator',
+                route: CodeGenerator.routeName
             ),
             _buildFeatureTile(
               context,
               icon: 'assets/images/Email Writer.png',
               title: 'Email Writer',
+                route: EmailWriter.routeName
             ),
             _buildFeatureTile(
               context,
               icon: 'assets/images/Text Summarizer.png',
               title: 'Text Summarizer',
+                route: TextSummarizer.routeName
             ),
+            /*
             _buildFeatureTile(
               context,
               icon: 'assets/images/Create Presentaion.png',
               title: 'Create Presentation',
+                route: NewChatBot.routeName
             ),
+             */
             _buildFeatureTile(
               context,
               icon: 'assets/images/Essay Writer.png',
               title: 'Essay Writer',
+                route: EssayWriter.routeName
             ),
           ],
         ),
@@ -106,7 +126,7 @@ class _OtherModelsState extends State<OtherModels> {
     );
   }
 
-  Widget _buildFeatureTile(BuildContext context, {required String icon, required String title}) {
+  Widget _buildFeatureTile(BuildContext context, {required String icon, required String title,required String route}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: GestureDetector(
@@ -114,7 +134,7 @@ class _OtherModelsState extends State<OtherModels> {
           final prefs = await SharedPreferences.getInstance();
           final newChatId = const Uuid().v4();
           await prefs.setString('chatId', newChatId); // 🆕 تخزين chatId جديد
-          Navigator.pushNamed(context, NewChatBot.routeName);
+          Navigator.pushNamed(context, route, arguments: newChatId);
         },
         child: Container(
           height: 76,

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:genio_ai/features/account/switch.dart';
 import 'package:genio_ai/features/home_screen/homescreen.dart';
+import 'package:genio_ai/features/login/presentation/login.dart';
 import 'package:genio_ai/features/login/presentation/widgets/text_auth.dart';
 import 'package:genio_ai/features/profile/profile_screen.dart';
+import 'package:quickalert/models/quickalert_type.dart';
+import 'package:quickalert/widgets/quickalert_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AccountSettings extends StatefulWidget {
@@ -62,9 +65,9 @@ class _AccountSettingsState extends State<AccountSettings> {
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         children: [
           _buildSectionTitle('My account'),
-          _buildTile('Profile','assets/images/user2.png',context),
-          _buildSwitchTile('Notifications', Icons.notifications, true),
-          _buildTile('Delete Account','assets/images/user-minus.png',context),
+          _buildTile('Profile','assets/images/user2.png',context,ProfileScreen.routeName),
+          // _buildSwitchTile('Notifications', Icons.notifications, true),
+          _buildTile('Delete Account','assets/images/user-minus.png',context,''),
 
           //SizedBox(height: 20),
           //_buildSectionTitle('Settings'),
@@ -73,19 +76,38 @@ class _AccountSettingsState extends State<AccountSettings> {
 
           SizedBox(height: 20),
           _buildSectionTitle('Support'),
-          _buildTile('FAQs','assets/images/question.png',context),
-          _buildTile('Customer Support','assets/images/music-play.png',context),
+          _buildTile('FAQs','assets/images/question.png',context,ProfileScreen.routeName),
+          _buildTile('Customer Support','assets/images/music-play.png',context,ProfileScreen.routeName),
 
           SizedBox(height: 20),
           _buildSectionTitle('Upgrade'),
-          _buildTile('Enter Limited code','assets/images/flash.png',context),
+          _buildTile('Enter Limited code','assets/images/flash.png',context,ProfileScreen.routeName),
 
           Padding(
             padding: const EdgeInsets.only(
               right: 225
             ),
             child: TextButton(
-              onPressed: () {},
+              onPressed: () {
+                QuickAlert.show(
+                  context: context,
+                  type: QuickAlertType.confirm,
+                  title: 'Do you want to logout ?',
+                  confirmBtnText: 'Yes',
+                  cancelBtnText: 'No',
+                  confirmBtnColor: Colors.green,
+                  onConfirmBtnTap: (){
+                    Future<void> logout(BuildContext context) async {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.clear(); // 🧹 مسح كل البيانات المخزنة
+                      Navigator.pushNamedAndRemoveUntil(context, Login.routeName, (route) => false); // ⬅️ راجع للّوجين
+                    }
+                  },
+                  onCancelBtnTap:(){
+                    Navigator.pop(context);
+                  },
+                );
+              },
               child: TextAuth(text: 'Logout', size: 20, fontWeight: FontWeight.w500, color: Color(0XFFDD5B5B)),
             ),
           )
@@ -101,7 +123,7 @@ class _AccountSettingsState extends State<AccountSettings> {
     );
   }
 
-  Widget _buildTile(String title,String image,BuildContext context) {
+  Widget _buildTile(String title,String image,BuildContext context,String route) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: ImageIcon(AssetImage(image),color : image.contains('assets/images/flash.png')
@@ -109,8 +131,26 @@ class _AccountSettingsState extends State<AccountSettings> {
       title: TextAuth(text: title, size: 17, fontWeight: FontWeight.w500, color: Colors.black),
       trailing: IconButton(onPressed: (){}, icon: ImageIcon(AssetImage('assets/images/arrow.png'),color: Color(0XFF344054),)),
       onTap: () {
-        //Navigate to profile
-        Navigator.pushNamed(context, ProfileScreen.routeName);
+        if (route == ''){
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.confirm,
+            title: 'Do you want to delete your account ?',
+            confirmBtnText: 'Yes',
+            cancelBtnText: 'No',
+            confirmBtnColor: Colors.green,
+            onConfirmBtnTap: (){
+              Future<void> logout(BuildContext context) async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.clear(); // 🧹 مسح كل البيانات المخزنة
+                Navigator.pushNamedAndRemoveUntil(context, Login.routeName, (route) => false); // ⬅️ راجع للّوجين
+              }
+            },
+            onCancelBtnTap:(){
+              Navigator.pop(context);
+            },
+          );
+        }else{Navigator.pushNamed(context, route);}
       },
     );
   }

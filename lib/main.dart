@@ -3,10 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genio_ai/features/account/account_settings.dart';
 import 'package:genio_ai/features/chat_bot/chatbot.dart';
 import 'package:genio_ai/features/chat_bot/new_chat.dart';
+import 'package:genio_ai/features/code_generator/code_generator_screen.dart';
+import 'package:genio_ai/features/email_writer/email_writer_screen.dart';
+import 'package:genio_ai/features/essay_writer/essay_writer_screen.dart';
 import 'package:genio_ai/features/home_screen/homescreen.dart';
+import 'package:genio_ai/features/image_generation/image_generation_screen.dart';
 import 'package:genio_ai/features/profile/profile_screen.dart';
 import 'package:genio_ai/features/register/register.dart';
 import 'package:genio_ai/features/splash_screen/splash_screen.dart';
+import 'package:genio_ai/features/text_summerizer/text_summerizer_screen.dart';
 import 'features/forget_password/data/repositry/done_repository.dart';
 import 'features/forget_password/data/repositry/reset_password_repository.dart';
 import 'features/forget_password/presentation/bloc/done_bloc.dart';
@@ -49,6 +54,11 @@ class MyApp extends StatelessWidget {
           AccountSettings.routeName:(_)=>AccountSettings(),
           ProfileScreen.routeName:(_)=>ProfileScreen(),
           NewChatBot.routeName:(_)=>NewChatBot(),
+          ImageGeneration.routeName:(_)=>ImageGeneration(),
+          CodeGenerator.routeName:(_)=>CodeGenerator(),
+          EmailWriter.routeName:(_)=>EmailWriter(),
+          TextSummarizer.routeName:(_)=>TextSummarizer(),
+          EssayWriter.routeName:(_)=>EssayWriter(),
         },
         home:SplashScreen(),
         theme: ThemeData(

@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:genio_ai/features/account/account_settings.dart';
+import 'package:genio_ai/features/code_generator/code_generator_screen.dart';
+import 'package:genio_ai/features/email_writer/email_writer_screen.dart';
+import 'package:genio_ai/features/essay_writer/essay_writer_screen.dart';
 import 'package:genio_ai/features/history/history_screen.dart';
 import 'package:genio_ai/features/home_screen/presentation/widgets/ai_tools_container.dart';
+import 'package:genio_ai/features/image_generation/image_generation_screen.dart';
 import 'package:genio_ai/features/other_models/other_models.dart';
+import 'package:genio_ai/features/text_summerizer/text_summerizer_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../chat_bot/chatbot.dart';
 import '../login/presentation/widgets/text_auth.dart';
@@ -44,27 +49,37 @@ class _HomeScreenState extends State<HomeScreen> {
       AiToolsContainer(
         text: 'Image Generation',
         imagePath: 'assets/images/image generation.png',
-        onTap: () {  },
+        onTap: () {
+          Navigator.pushNamed(context, ImageGeneration.routeName);
+        },
       ),
       AiToolsContainer(
         text: 'Code Generator',
         imagePath: 'assets/images/Code Generator.png',
-        onTap: () {  },
+        onTap: () {
+          Navigator.pushNamed(context, CodeGenerator.routeName);
+        },
       ),
       AiToolsContainer(
         text: 'Email Writer',
         imagePath: 'assets/images/Email Writer.png',
-        onTap: () {  },
+        onTap: () {
+          Navigator.pushNamed(context, EmailWriter.routeName);
+        },
       ),
       AiToolsContainer(
         text: 'Text Summarizer',
         imagePath: 'assets/images/Text Summarizer.png',
-        onTap: () {  },
+        onTap: () {
+          Navigator.pushNamed(context, TextSummarizer.routeName);
+        },
       ),
       AiToolsContainer(
         text: 'Essay Writer',
         imagePath: 'assets/images/Essay Writer.png',
-        onTap: () {},
+        onTap: () {
+          Navigator.pushNamed(context, EssayWriter.routeName);
+        },
       ),
     ];
     return Scaffold(

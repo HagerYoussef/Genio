@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:genio_ai/features/chat_bot/new_chat.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:genio_ai/features/login/presentation/widgets/text_auth.dart';
 import 'package:intl/intl.dart';
@@ -16,6 +17,9 @@ class History extends StatefulWidget {
 class _HistoryState extends State<History> {
   Map<String, List<Map<String, String>>> groupedPreviews = {};
   String? profileImageUrl;
+  bool showSearchField = false;
+  TextEditingController searchController = TextEditingController();
+  String searchKeyword = '';
 
   @override
   void initState() {
@@ -38,7 +42,37 @@ class _HistoryState extends State<History> {
     if (raw != null) {
       final Map<String, dynamic> allChats = json.decode(raw);
       groupedPreviews.clear();
+////////////////////////////////////////
+      // 🔹 Step 1: Load image generation previews
+      final previewRaw = prefs.getString('local_chats_preview');
 
+      if (previewRaw != null) {
+        final Map<String, dynamic> imageChats = json.decode(previewRaw);
+
+        imageChats.forEach((chatId, chatData) {
+          final preview = chatData['preview'];
+          final timestamp = chatData['timestamp'];
+
+          if (preview != null && timestamp != null) {
+            final parsedDate = DateTime.tryParse(timestamp);
+            if (parsedDate != null) {
+              final dateKey = DateFormat('yyyy-MM-dd').format(parsedDate);
+              final displayDate = DateFormat('d MMMM').format(parsedDate);
+
+              if (!groupedPreviews.containsKey(dateKey)) {
+                groupedPreviews[dateKey] = [];
+              }
+
+              groupedPreviews[dateKey]!.add({
+                'chatId': chatId,
+                'preview': preview,
+                'displayDate': displayDate,
+              });
+            }
+          }
+        });
+      }
+///////////////////////////////////
       allChats.forEach((chatId, chatMessages) {
         final List messages = chatMessages;
 
@@ -89,10 +123,17 @@ class _HistoryState extends State<History> {
             const Divider(indent: 20, endIndent: 25, color: Color(0XFF99B5DD)),
             _buildSectionTitle('History'),
             ...groupedPreviews.entries.expand(
-              (entry) => [
-                _buildDateGroup(entry.value.first['displayDate'] ?? entry.key),
-                ...entry.value.map(_buildItem),
-              ],
+                  (entry) {
+                final filtered = entry.value.where((chat) =>
+                    chat['preview']!.toLowerCase().contains(searchKeyword)).toList();
+
+                if (filtered.isEmpty) return [];
+
+                return [
+                  _buildDateGroup(entry.value.first['displayDate'] ?? entry.key),
+                  ...filtered.map(_buildItem),
+                ];
+              },
             ),
             const Divider(indent: 20, endIndent: 25, color: Color(0XFF99B5DD)),
             _buildUserInfo(),
@@ -110,23 +151,60 @@ class _HistoryState extends State<History> {
           Row(
             children: [
               IconButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
                 icon: Image.asset('assets/images/historyIcon.png'),
               ),
-              const Spacer(),
+
+              if (showSearchField)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 8, right: 4),
+                    child: TextField(
+                      controller: searchController,
+                      onChanged: (value) {
+                        setState(() {
+                          searchKeyword = value.toLowerCase();
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Search chats...',
+                        filled: true,
+                        fillColor: const Color(0xffF0F8FF),
+                        hintStyle: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 13,
+                          color: Colors.black54,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Color(0x800047ab), width: 1.5),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Color(0xff99B5DF), width: 1.5),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              else
+                const Spacer(), // 💡 علشان تسيب مساحة لما الـ TextField مش ظاهر
               IconButton(
                 onPressed: () {
-                  //await SharedPreferencesCleaner.clearAllData(context);
+                  setState(() {
+                    showSearchField = !showSearchField;
+                    if (!showSearchField) {
+                      searchController.clear();
+                      searchKeyword = '';
+                      _loadChatList(); // reload full list
+                    }
+                  });
                 },
                 icon: Image.asset('assets/images/search.png'),
-              ),
-              IconButton(
-                onPressed: () {},
-                icon: const ImageIcon(
-                  AssetImage('assets/images/edit.png'),
-                  color: Color(0xff0047AB),
-                  size: 24,
-                ),
               ),
             ],
           ),
@@ -184,12 +262,41 @@ class _HistoryState extends State<History> {
           color: const Color(0XFF004B67),
         ),
       ),
-      onTap: () async {
+        onTap: () async {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('chatId', chat['chatId']!);
+
+          final raw = prefs.getString('local_chats_preview');
+          String? type;
+
+          if (raw != null) {
+            final Map<String, dynamic> previews = json.decode(raw);
+            type = previews[chat['chatId']]?['type'];
+          }
+
+          Navigator.of(context).pop();
+
+          if (type == 'image') {
+            Navigator.pushReplacementNamed(context, 'ImageGeneration', arguments: chat['chatId']);
+          } else if (type == 'code') {
+            Navigator.pushReplacementNamed(context, 'CodeGenerator', arguments: chat['chatId']);
+          }else if (type == 'email') {
+            Navigator.pushReplacementNamed(context, 'EmailWriter', arguments: chat['chatId']);
+          }else if (type == 'summary') {
+            Navigator.pushReplacementNamed(context, 'TextSummarizer', arguments: chat['chatId']);
+          } else if (type == 'essay') {
+            Navigator.pushReplacementNamed(context, 'EssayWriter', arguments: chat['chatId']);
+          } else {
+            Navigator.pushReplacementNamed(context, NewChatBot.routeName);
+          }
+        }
+      /*onTap: () async {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('chatId', chat['chatId']!);
         Navigator.of(context).pop();
         Navigator.pushReplacementNamed(context, NewChatBot.routeName);
       },
+       */
     );
   }
 
@@ -242,3 +349,12 @@ class _HistoryState extends State<History> {
     }
   }
 }
+// header
+// IconButton(
+//   onPressed: () {},
+//   icon: const ImageIcon(
+//     AssetImage('assets/images/edit.png'),
+//     color: Color(0xff0047AB),
+//     size: 24,
+//   ),
+// ),
