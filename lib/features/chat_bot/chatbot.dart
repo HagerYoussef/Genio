@@ -66,19 +66,18 @@ class _ChatBotState extends State<ChatBot> {
 
   Future<void> _saveMessagesLocally() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString("local_chats_chatbot");
+    final raw = prefs.getString("local_chats");
     Map<String, dynamic> allChats = raw != null ? json.decode(raw) : {};
-
     if (_chatId != null) {
       allChats[_chatId!] = _messages;
-      await prefs.setString("local_chats_chatbot", json.encode(allChats));
+      await prefs.setString("local_chats", json.encode(allChats));
     }
   }
 
   Future<void> _loadChatMessages() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString('local_chats_chatbot');
+      final raw = prefs.getString('local_chats');
       if (raw != null && _chatId != null) {
         final Map<String, dynamic> allChats = json.decode(raw);
         final List<dynamic>? chatMessages = allChats[_chatId];

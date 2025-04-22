@@ -34,12 +34,9 @@ class _AccountSettingsState extends State<AccountSettings> {
 
   Future<void> logout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove("userId"); // ✅ حذف userId فقط
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      Login.routeName,
-          (route) => false,
-    );
+    await prefs.remove("userId");
+    await prefs.remove("accessToken");
+    Navigator.pushNamedAndRemoveUntil(context, 'Login', (route) => false);
   }
 
   @override
