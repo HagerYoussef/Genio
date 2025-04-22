@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import 'login/presentation/login.dart';
@@ -13,7 +16,6 @@ class OnBoardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnBoardingScreen> {
   final PageController _controller = PageController();
   int currentIndex = 0;
-
   final List<OnboardingModel> pages = [
     OnboardingModel(
       image: 'assets/images/chatbot1.png',
@@ -34,6 +36,25 @@ class _OnboardingScreenState extends State<OnBoardingScreen> {
           "Creating Presentation helps you share ideas clearly through organized slides with strong visuals and structure.",
     ),
   ];
+  @override
+  void initState() {
+    super.initState();
+    _autoSlide();
+  }
+
+  void _autoSlide() {
+    Timer.periodic(Duration(seconds: 2), (timer) {
+      if (_controller.page == pages.length - 1) {
+        timer.cancel();
+      } else {
+        _controller.nextPage(
+          duration: Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -89,13 +110,15 @@ class _OnboardingScreenState extends State<OnBoardingScreen> {
             ),
             const SizedBox(height: 20),
             InkWell(
-              onTap: () {
+              onTap: () async {
                 if (currentIndex < pages.length - 1) {
                   _controller.nextPage(
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeIn,
                   );
                 } else {
+                  // final prefs = await SharedPreferences.getInstance();
+                  // await prefs.setBool('onboarding_done', true);
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (context) => Login()),
