@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:genio_ai/features/login/presentation/login.dart';
 import 'package:genio_ai/features/login/presentation/widgets/text_auth.dart';
+import 'package:genio_ai/features/home_screen/homescreen.dart';
+import 'package:genio_ai/features/on_boarding_screen.dart';
 import 'dart:async';
 
-import 'package:genio_ai/features/on_boarding_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -29,9 +32,22 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
     _controller.forward();
 
-    Timer(Duration(seconds: 4), () {
+    Timer(Duration(seconds: 4), _navigateNext); // ✅ صح كده
+  }
+
+
+  Future<void> _navigateNext() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId');
+    final onboardingDone = prefs.getBool('onboarding_done') ?? false;
+
+    if (!onboardingDone) {
       Navigator.pushReplacementNamed(context, OnBoardingScreen.routeName);
-    });
+    } else if (userId != null && userId.isNotEmpty) {
+      Navigator.pushReplacementNamed(context, HomeScreen.routeName);
+    } else {
+      Navigator.pushReplacementNamed(context, Login.routeName);
+    }
   }
 
   @override
@@ -54,7 +70,12 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               children: [
                 Image.asset('assets/images/splash.png', height: 180),
                 SizedBox(height: 20),
-                TextAuth(text: 'Genio AI', size: 24, fontWeight: FontWeight.w700, color: Colors.white)
+                TextAuth(
+                  text: 'Genio AI',
+                  size: 24,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
               ],
             ),
           ),

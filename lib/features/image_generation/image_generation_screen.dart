@@ -28,6 +28,7 @@ class _ImageGenerationState extends State<ImageGeneration> {
   @override
   void initState() {
     super.initState();
+    _loadChatIdFromPrefs();
   }
 
   @override
@@ -48,14 +49,14 @@ class _ImageGenerationState extends State<ImageGeneration> {
 
   Future<void> _loadChatIdFromPrefs() async {
     final prefs = await SharedPreferences.getInstance();
-    _chatId = prefs.getString("chatId");
+    _chatId = prefs.getString("chatId_image_generation");
     print("📥 Loaded existing chatId from prefs: $_chatId");
 
     if (_chatId != null) {
       _loadChatHistory();
     } else {
       _chatId = const Uuid().v4();
-      await prefs.setString("chatId", _chatId!);
+      await prefs.setString("chatId_image_generation", _chatId!);
       print("🆕 Created fallback chatId: $_chatId");
       _loadChatHistory();
     }
@@ -66,11 +67,11 @@ class _ImageGenerationState extends State<ImageGeneration> {
   String? _chatId;
   Future<void> _loadOrCreateChatId() async {
     final prefs = await SharedPreferences.getInstance();
-    _chatId = prefs.getString("chat_id");
+    _chatId = prefs.getString("chatId_image_generation");
 
     if (_chatId == null || _chatId!.isEmpty) {
       _chatId = const Uuid().v4();
-      await prefs.setString("chat_id", _chatId!);
+      await prefs.setString("chatId_image_generation", _chatId!);
       print("🆕 Generated chatId: $_chatId");
     } else {
       print("📦 Loaded chatId: $_chatId");

@@ -114,7 +114,9 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () {
+                    onPressed: () async{
+                      // await clearAllPrefs();
+                      // print('done');
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (_) => UpgradeScreen()),
@@ -174,5 +176,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       )
       );
+  }
+  Future<void> clearAllPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    print("🧹 All SharedPreferences cleared.");
   }
 }

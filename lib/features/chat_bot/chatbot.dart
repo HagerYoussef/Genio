@@ -42,10 +42,10 @@ class _ChatBotState extends State<ChatBot> {
       return;
     }
 
-    _chatId = prefs.getString("chatId");
+    _chatId = prefs.getString("chatId_chatbot");
     if (_chatId == null) {
       _chatId = const Uuid().v4();
-      await prefs.setString("chatId", _chatId!);
+      await prefs.setString("chatId_chatbot", _chatId!);
       print("🆕 Generated chatId: $_chatId");
     } else {
       print("📦 Loaded chatId: $_chatId");
@@ -58,7 +58,7 @@ class _ChatBotState extends State<ChatBot> {
   Future<void> _createNewChat() async {
     final prefs = await SharedPreferences.getInstance();
     _chatId = const Uuid().v4();
-    await prefs.setString('chatId', _chatId!);
+    await prefs.setString('chatId_chatbot', _chatId!);
     await _saveMessagesLocally();
     _messages.clear();
     setState(() {});
@@ -66,19 +66,19 @@ class _ChatBotState extends State<ChatBot> {
 
   Future<void> _saveMessagesLocally() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString("local_chats");
+    final raw = prefs.getString("local_chats_chatbot");
     Map<String, dynamic> allChats = raw != null ? json.decode(raw) : {};
 
     if (_chatId != null) {
       allChats[_chatId!] = _messages;
-      await prefs.setString("local_chats", json.encode(allChats));
+      await prefs.setString("local_chats_chatbot", json.encode(allChats));
     }
   }
 
   Future<void> _loadChatMessages() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString('local_chats');
+      final raw = prefs.getString('local_chats_chatbot');
       if (raw != null && _chatId != null) {
         final Map<String, dynamic> allChats = json.decode(raw);
         final List<dynamic>? chatMessages = allChats[_chatId];
