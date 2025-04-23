@@ -8,10 +8,12 @@ import 'package:genio_ai/features/email_writer/email_writer_screen.dart';
 import 'package:genio_ai/features/essay_writer/essay_writer_screen.dart';
 import 'package:genio_ai/features/home_screen/homescreen.dart';
 import 'package:genio_ai/features/image_generation/image_generation_screen.dart';
+import 'package:genio_ai/features/payment/payment_screen.dart';
 import 'package:genio_ai/features/profile/profile_screen.dart';
 import 'package:genio_ai/features/register/register.dart';
 import 'package:genio_ai/features/splash_screen/splash_screen.dart';
 import 'package:genio_ai/features/text_summerizer/text_summerizer_screen.dart';
+import 'package:genio_ai/features/upgrade_screen.dart';
 import 'features/forget_password/data/repositry/done_repository.dart';
 import 'features/forget_password/data/repositry/reset_password_repository.dart';
 import 'features/forget_password/presentation/bloc/done_bloc.dart';
@@ -20,9 +22,12 @@ import 'features/login/data/repository/login_repository.dart';
 import 'features/login/presentation/bloc/login_bloc.dart';
 import 'features/login/presentation/login.dart';
 import 'features/on_boarding_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -59,6 +64,14 @@ class MyApp extends StatelessWidget {
           EmailWriter.routeName:(_)=>EmailWriter(),
           TextSummarizer.routeName:(_)=>TextSummarizer(),
           EssayWriter.routeName:(_)=>EssayWriter(),
+          UpgradeScreen.routeName:(_)=>UpgradeScreen(),
+          PaymentScreen.routeName: (context) {
+            final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+            return PaymentScreen(
+              planName: args['planName'],
+              planPrice: args['planPrice'],
+            );
+          },
         },
         home:SplashScreen(),
         theme: ThemeData(

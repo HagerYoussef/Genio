@@ -4,6 +4,7 @@ import 'package:genio_ai/features/home_screen/homescreen.dart';
 import 'package:genio_ai/features/login/presentation/login.dart';
 import 'package:genio_ai/features/login/presentation/widgets/text_auth.dart';
 import 'package:genio_ai/features/profile/profile_screen.dart';
+import 'package:genio_ai/features/upgrade_screen.dart';
 import 'package:quickalert/models/quickalert_type.dart';
 import 'package:quickalert/widgets/quickalert_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -111,16 +112,14 @@ class _AccountSettingsState extends State<AccountSettings> {
             context,
             ProfileScreen.routeName,
           ),
-
           SizedBox(height: 20),
           _buildSectionTitle('Upgrade'),
           _buildTile(
-            'Enter Limited code',
+            'View Plans',
             'assets/images/flash.png',
             context,
-            ProfileScreen.routeName,
+            UpgradeScreen.routeName,
           ),
-
           Padding(
             padding: const EdgeInsets.only(right: 225),
             child: TextButton(

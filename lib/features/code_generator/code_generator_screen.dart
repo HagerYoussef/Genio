@@ -55,7 +55,6 @@ class _CodeGeneratorState extends State<CodeGenerator> {
     _loadChatHistory();
   }
 
-
   Future<void> _saveChatHistory() async {
     final prefs = await SharedPreferences.getInstance();
     final historyJson = jsonEncode(_messages);

@@ -115,8 +115,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   IconButton(
                     onPressed: () async{
-                      // await clearAllPrefs();
-                      // print('done');
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (_) => UpgradeScreen()),
@@ -124,7 +122,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                     icon: const ImageIcon(AssetImage('assets/images/flash.png'),color: Color(0xff0047AB),size: 24,),
                   ),
-                  TextAuth(text: 'Upgrade', size: 13, fontWeight: FontWeight.w500, color: Color(0xff0047AB)),
+                  GestureDetector(
+                    onTap: (){
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => UpgradeScreen()),
+                      );
+                    },
+                      child: TextAuth(text: 'Upgrade', size: 13, fontWeight: FontWeight.w500, color: Color(0xff0047AB))),
                 ],
               ),
             ),
