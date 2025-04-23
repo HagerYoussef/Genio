@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genio_ai/features/account/account_settings.dart';
-import 'package:genio_ai/features/chat_bot/chatbot.dart';
 import 'package:genio_ai/features/chat_bot/new_chat.dart';
 import 'package:genio_ai/features/code_generator/code_generator_screen.dart';
 import 'package:genio_ai/features/email_writer/email_writer_screen.dart';
@@ -53,7 +52,8 @@ class MyApp extends StatelessWidget {
         routes: {
           Login.routeName:(_)=>Login(),
           Register.routeName:(_)=>Register(),
-          ChatBot.routeName:(_)=>ChatBot(),
+          //ChatBot.routeName:(_)=>ChatBot(),
+          NewChatBot.routeName: (context) => const NewChatBot(),
           HomeScreen.routeName:(_)=>HomeScreen(),
           OnBoardingScreen.routeName:(_)=>OnBoardingScreen(),
           AccountSettings.routeName:(_)=>AccountSettings(),

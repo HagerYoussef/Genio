@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genio_ai/features/account/account_settings.dart';
+import 'package:genio_ai/features/chat_bot/new_chat.dart';
 import 'package:genio_ai/features/code_generator/code_generator_screen.dart';
 import 'package:genio_ai/features/email_writer/email_writer_screen.dart';
 import 'package:genio_ai/features/essay_writer/essay_writer_screen.dart';
@@ -9,7 +10,6 @@ import 'package:genio_ai/features/image_generation/image_generation_screen.dart'
 import 'package:genio_ai/features/other_models/other_models.dart';
 import 'package:genio_ai/features/text_summerizer/text_summerizer_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../chat_bot/chatbot.dart';
 import '../login/presentation/widgets/text_auth.dart';
 import '../upgrade_screen.dart';
 class HomeScreen extends StatefulWidget {
@@ -42,43 +42,76 @@ class _HomeScreenState extends State<HomeScreen> {
       AiToolsContainer(
         text: 'Chat Bot',
         imagePath: 'assets/images/chatbot.png',
-          onTap: () {
-            Navigator.pushNamed(context, ChatBot.routeName);
+        onTap: () {
+          Navigator.pushNamed(context, NewChatBot.routeName,arguments: {"from": "home"},);
         },
       ),
       AiToolsContainer(
         text: 'Image Generation',
         imagePath: 'assets/images/image generation.png',
-        onTap: () {
-          Navigator.pushNamed(context, ImageGeneration.routeName);
+        onTap: () async {
+          final prefs = await SharedPreferences.getInstance();
+          final lastChatId = prefs.getString("chatId_image_generation");
+
+          Navigator.pushNamed(
+            context,
+            ImageGeneration.routeName,
+            arguments: lastChatId, // ← حتى لو null، مفيش مشكلة
+          );
         },
       ),
       AiToolsContainer(
         text: 'Code Generator',
         imagePath: 'assets/images/Code Generator.png',
-        onTap: () {
-          Navigator.pushNamed(context, CodeGenerator.routeName);
+        onTap: () async {
+          final prefs = await SharedPreferences.getInstance();
+          final lastChatId = prefs.getString("chat_id_code");
+
+          Navigator.pushNamed(
+            context,
+            CodeGenerator.routeName,
+            arguments: lastChatId,
+          );
         },
       ),
       AiToolsContainer(
         text: 'Email Writer',
         imagePath: 'assets/images/Email Writer.png',
-        onTap: () {
-          Navigator.pushNamed(context, EmailWriter.routeName);
+        onTap: () async {
+          final prefs = await SharedPreferences.getInstance();
+          final lastChatId = prefs.getString("chat_id_email");
+          Navigator.pushNamed(
+            context,
+            EmailWriter.routeName,
+            arguments: lastChatId,
+          );
         },
       ),
       AiToolsContainer(
         text: 'Text Summarizer',
         imagePath: 'assets/images/Text Summarizer.png',
-        onTap: () {
-          Navigator.pushNamed(context, TextSummarizer.routeName);
+        onTap: () async {
+          final prefs = await SharedPreferences.getInstance();
+          final lastChatId = prefs.getString("chat_id_summary");
+
+          Navigator.pushNamed(
+            context,
+            TextSummarizer.routeName,
+            arguments: lastChatId,
+          );
         },
       ),
       AiToolsContainer(
         text: 'Essay Writer',
         imagePath: 'assets/images/Essay Writer.png',
-        onTap: () {
-          Navigator.pushNamed(context, EssayWriter.routeName);
+        onTap: () async {
+          final prefs = await SharedPreferences.getInstance();
+          final lastChatId = prefs.getString("chat_id_essay");
+          Navigator.pushNamed(
+            context,
+            EssayWriter.routeName,
+            arguments: lastChatId,
+          );
         },
       ),
     ];

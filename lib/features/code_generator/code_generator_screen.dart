@@ -26,7 +26,40 @@ class _CodeGeneratorState extends State<CodeGenerator> {
   String? _chatId;
 
   @override
-  void didChangeDependencies() {
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeChat();
+    });
+  }
+
+  void _initializeChat() {
+    Future.microtask(() async {
+      final prefs = await SharedPreferences.getInstance();
+      final passedChatId = ModalRoute.of(context)?.settings.arguments;
+
+      if (passedChatId is String) {
+        _chatId = passedChatId;
+        print("📥 Using passed chatId: $_chatId");
+      } else {
+        _chatId = prefs.getString("chat_id_code");
+
+        if (_chatId == null || _chatId!.isEmpty) {
+          _chatId = const Uuid().v4();
+          print("🆕 Created new code chatId: $_chatId");
+        } else {
+          print("📦 Loaded saved code chatId: $_chatId");
+        }
+
+        await prefs.setString("chat_id_code", _chatId!); // ← مهم: تحديث آخر شات محفوظ
+      }
+
+      _loadChatHistory();
+    });
+  }
+
+  @override
+  /*void didChangeDependencies() {
     super.didChangeDependencies();
 
     final passedChatId = ModalRoute.of(context)?.settings.arguments;
@@ -39,6 +72,7 @@ class _CodeGeneratorState extends State<CodeGenerator> {
       _loadChatIdFromPrefs();
     }
   }
+   */
 
   Future<void> _loadChatIdFromPrefs() async {
     final prefs = await SharedPreferences.getInstance();

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:genio_ai/features/account/account_settings.dart';
+import 'package:genio_ai/features/home_screen/homescreen.dart';
 import 'package:genio_ai/features/login/presentation/widgets/text_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -23,10 +24,19 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   String? profileImageUrl;
+  String? from;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // استقبال الـ arguments
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is Map && args.containsKey("from")) {
+      from = args["from"];
+    }
+
+    // تحميل الصورة
     loadProfileImage();
   }
 
@@ -57,18 +67,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Navigator.pop(context);
           },
           icon: GestureDetector(
-            onTap: (){
-              Navigator.push(context, MaterialPageRoute(
-                builder: (_) => const AccountSettings(),
-              )).then((_) {
-                loadProfileImage();
-              });
+            onTap: () {
+              final routeArgs = ModalRoute.of(context)?.settings.arguments;
+              final from = (routeArgs is Map && routeArgs.containsKey("from")) ? routeArgs["from"] : null;
+
+              if (from == "homeDrawer") {
+                Navigator.pushReplacementNamed(context, HomeScreen.routeName); // غيّري ده حسب اسم الراوت بتاع الهوم
+              } else {
+                Navigator.pop(context); // يرجع لللي قبله عادي
+              }
             },
-            child: ImageIcon(
+            child: const ImageIcon(
               AssetImage('assets/images/arrowback.png'),
               color: Color(0xff0047AB),
             ),
-          ),
+          )
         ),
       ),
       body: Padding(

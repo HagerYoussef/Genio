@@ -26,7 +26,40 @@ class _EssayWriterState extends State<EssayWriter> {
   String? _chatId;
 
   @override
-  void didChangeDependencies() {
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeChat();
+    });
+  }
+
+  void _initializeChat() {
+    Future.microtask(() async {
+      final prefs = await SharedPreferences.getInstance();
+      final passedChatId = ModalRoute.of(context)?.settings.arguments;
+
+      if (passedChatId is String) {
+        _chatId = passedChatId;
+        print("📥 Using passed chatId: $_chatId");
+      } else {
+        _chatId = prefs.getString("chat_id_essay");
+
+        if (_chatId == null || _chatId!.isEmpty) {
+          _chatId = const Uuid().v4();
+          print("🆕 Created new essay chatId: $_chatId");
+        } else {
+          print("📦 Loaded saved essay chatId: $_chatId");
+        }
+
+        await prefs.setString("chat_id_essay", _chatId!); // 📝 تحديث آخر شات دايمًا
+      }
+
+      _loadChatHistory();
+    });
+  }
+
+  @override
+  /*void didChangeDependencies() {
     super.didChangeDependencies();
 
     final passedChatId = ModalRoute.of(context)?.settings.arguments;
@@ -38,6 +71,7 @@ class _EssayWriterState extends State<EssayWriter> {
       _loadChatIdFromPrefs();
     }
   }
+   */
 
   Future<void> _loadChatIdFromPrefs() async {
     final prefs = await SharedPreferences.getInstance();

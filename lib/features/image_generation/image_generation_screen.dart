@@ -24,28 +24,54 @@ class _ImageGenerationState extends State<ImageGeneration> {
   List<Map<String, String>> _messages = [];
   final ScrollController _scrollController = ScrollController();
   String chatHistoryKey = 'image_generation';
+  int _freeLimit = 2;
+  bool _isPro = false;
+  int _imageGenerationCount = 0;
 
   @override
   void initState() {
     super.initState();
-    _loadChatIdFromPrefs();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeChat();
+      _loadPlanStatus();
+    });
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+  /*void initState() {
+    super.initState();
+    _initializeChat();
+    //_loadChatIdFromPrefs();
+    _loadPlanStatus();
+  }
+   */
 
-    final passedChatId = ModalRoute.of(context)?.settings.arguments;
+  void _initializeChat() {
+    Future.microtask(() async {
+      final prefs = await SharedPreferences.getInstance();
+      final passedChatId = ModalRoute.of(context)?.settings.arguments;
 
-    if (passedChatId is String) {
-      _chatId = passedChatId;
-      print("📥 Using chatId from arguments: $_chatId");
+      if (passedChatId is String) {
+        _chatId = passedChatId;
+        print("📥 Using chatId from arguments: $_chatId");
+      } else {
+        _chatId = const Uuid().v4();
+        print("🆕 Created new chatId: $_chatId");
+      }
+
+      // ✅ دايمًا سجل آخر chatId مفتوح
+      await prefs.setString("chatId_image_generation", _chatId!);
+
       _loadChatHistory();
-    } else {
-      _loadChatIdFromPrefs(); // ← لما نفتح من الهيستوري
-    }
+    });
   }
 
+  Future<void> _loadPlanStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isPro = prefs.getBool("is_pro_user") ?? false;
+    _imageGenerationCount = prefs.getInt("image_generation_count") ?? 0;
+    setState(() {});
+  }
 
   Future<void> _loadChatIdFromPrefs() async {
     final prefs = await SharedPreferences.getInstance();
@@ -61,8 +87,6 @@ class _ImageGenerationState extends State<ImageGeneration> {
       _loadChatHistory();
     }
   }
-
-
 
   String? _chatId;
   Future<void> _loadOrCreateChatId() async {
@@ -91,8 +115,20 @@ class _ImageGenerationState extends State<ImageGeneration> {
       return;
     }
 
+    final prefs = await SharedPreferences.getInstance();
+    final isPro = prefs.getBool("is_pro_user") ?? false;
+    int imageGenerationCount = prefs.getInt("image_generation_count") ?? 0;
+    const int freeLimit = 2;
+
+    if (!isPro && imageGenerationCount >= freeLimit) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("🛑 Free plan limit reached. Upgrade to continue.")),
+      );
+      return;
+    }
+
     final prompt = _controller.text.trim();
-    if (prompt.isEmpty || _chatId == null) return;
+    if (prompt.isEmpty) return;
     await _saveChatPreviewIfNeeded(prompt);
 
     setState(() {
@@ -100,7 +136,6 @@ class _ImageGenerationState extends State<ImageGeneration> {
       _controller.clear();
     });
     await _saveChatHistory();
-
     _scrollToBottom();
 
     final imageUrl = await generateImageLinkWithGemini(prompt);
@@ -110,6 +145,11 @@ class _ImageGenerationState extends State<ImageGeneration> {
         _messages.add({"text": imageUrl, "sender": "ai"});
       });
       await _saveChatHistory();
+
+      if (!isPro) {
+        imageGenerationCount++;
+        await prefs.setInt("image_generation_count", imageGenerationCount);
+      }
     } else {
       setState(() {
         _messages.add({"text": "⚠️ Failed to generate image.", "sender": "ai"});

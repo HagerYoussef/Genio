@@ -403,6 +403,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             context: context
                         );
                         if (status == true){
+                          await prefs.setBool("is_pro_user", true); // ← تفعيل الخطة المدفوعة
+                          await prefs.remove("image_generation_count"); // ← تصفير العداد المجاني
                           QuickAlert.show(
                             context: context,
                             type: QuickAlertType.success,

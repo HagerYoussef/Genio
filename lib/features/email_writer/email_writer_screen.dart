@@ -26,7 +26,42 @@ class _EmailWriterState extends State<EmailWriter> {
   String? _chatId;
 
   @override
-  void didChangeDependencies() {
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeChat();
+    });
+  }
+
+  void _initializeChat() {
+    Future.microtask(() async {
+      final prefs = await SharedPreferences.getInstance();
+      final passedChatId = ModalRoute.of(context)?.settings.arguments;
+
+      if (passedChatId is String) {
+        _chatId = passedChatId;
+        print("📥 Using passed chatId: $_chatId");
+      } else {
+        _chatId = prefs.getString("chat_id_email");
+
+        if (_chatId == null || _chatId!.isEmpty) {
+          _chatId = const Uuid().v4();
+          print("🆕 Created new email chatId: $_chatId");
+        } else {
+          print("📦 Loaded saved email chatId: $_chatId");
+        }
+
+        // 📝 سجل دايمًا آخر شات
+        await prefs.setString("chat_id_email", _chatId!);
+      }
+
+      _loadChatHistory();
+    });
+  }
+
+
+  @override
+  /*void didChangeDependencies() {
     super.didChangeDependencies();
     final passedChatId = ModalRoute.of(context)?.settings.arguments;
     if (passedChatId is String) {
@@ -36,6 +71,7 @@ class _EmailWriterState extends State<EmailWriter> {
       _loadChatIdFromPrefs();
     }
   }
+   */
 
   Future<void> _loadChatIdFromPrefs() async {
     final prefs = await SharedPreferences.getInstance();

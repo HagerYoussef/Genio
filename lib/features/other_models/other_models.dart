@@ -43,7 +43,7 @@ class _OtherModelsState extends State<OtherModels> {
           children: [
             GestureDetector(
               onTap: (){
-                Navigator.pushNamed(context, ProfileScreen.routeName);
+                Navigator.pushNamed(context, ProfileScreen.routeName, arguments: {'from':'homeDrawer'});
               },
               child: Container(
                 padding: EdgeInsets.only(

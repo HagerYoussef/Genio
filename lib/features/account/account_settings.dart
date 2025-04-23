@@ -81,6 +81,7 @@ class _AccountSettingsState extends State<AccountSettings> {
         children: [
           _buildSectionTitle('My account'),
           _buildTile(
+            null,
             'Profile',
             'assets/images/user2.png',
             context,
@@ -88,6 +89,7 @@ class _AccountSettingsState extends State<AccountSettings> {
           ),
           // _buildSwitchTile('Notifications', Icons.notifications, true),
           _buildTile(
+            null,
             'Delete Account',
             'assets/images/user-minus.png',
             context,
@@ -101,12 +103,14 @@ class _AccountSettingsState extends State<AccountSettings> {
           SizedBox(height: 20),
           _buildSectionTitle('Support'),
           _buildTile(
+            null,
             'FAQs',
             'assets/images/question.png',
             context,
             ProfileScreen.routeName,
           ),
           _buildTile(
+            {"from": "Account"},
             'Customer Support',
             'assets/images/music-play.png',
             context,
@@ -115,6 +119,7 @@ class _AccountSettingsState extends State<AccountSettings> {
           SizedBox(height: 20),
           _buildSectionTitle('Upgrade'),
           _buildTile(
+            null,
             'View Plans',
             'assets/images/flash.png',
             context,
@@ -165,6 +170,7 @@ class _AccountSettingsState extends State<AccountSettings> {
   }
 
   Widget _buildTile(
+    Map<String, dynamic>? args,
     String title,
     String image,
     BuildContext context,
@@ -209,7 +215,7 @@ class _AccountSettingsState extends State<AccountSettings> {
             },
           );
         } else {
-          Navigator.pushNamed(context, route);
+          Navigator.pushNamed(context, route,arguments: args);
         }
       },
     );

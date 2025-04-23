@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genio_ai/features/account/account_settings.dart';
 import 'package:genio_ai/features/home_screen/homescreen.dart';
 import 'package:genio_ai/features/login/presentation/widgets/text_auth.dart';
 import 'package:genio_ai/features/payment/payment_screen.dart';
@@ -6,10 +7,27 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:quickalert/models/quickalert_type.dart';
 import 'package:quickalert/widgets/quickalert_dialog.dart';
 
-class UpgradeScreen extends StatelessWidget {
+class UpgradeScreen extends StatefulWidget {
   static String routeName = 'upgrade screen';
 
-  const UpgradeScreen({super.key});
+  UpgradeScreen({super.key});
+
+  @override
+  State<UpgradeScreen> createState() => _UpgradeScreenState();
+}
+
+class _UpgradeScreenState extends State<UpgradeScreen> {
+  String? _from;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is Map<String, dynamic>) {
+      _from = args['from'];
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,7 +37,14 @@ class UpgradeScreen extends StatelessWidget {
         elevation: 0,
         leading: InkWell(
           onTap: () {
-            Navigator.pushNamed(context, HomeScreen.routeName);
+            if (_from == "home") {
+              Navigator.pushReplacementNamed(context, HomeScreen.routeName);
+            } else if (_from == "account") {
+              Navigator.pushReplacementNamed(context, AccountSettings.routeName);
+            } else {
+              Navigator.pushReplacementNamed(context, HomeScreen.routeName);
+            }
+            //Navigator.pushNamed(context, HomeScreen.routeName);
           },
           child: Icon(Icons.arrow_back_ios, color: Color(0xff0047AB)),
         ),
