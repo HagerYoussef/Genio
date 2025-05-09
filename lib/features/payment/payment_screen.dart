@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:quickalert/models/quickalert_type.dart';
 import 'package:quickalert/widgets/quickalert_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/usage_manager.dart';
 import 'email_service.dart';
 
 class PaymentScreen extends StatefulWidget {
@@ -394,7 +395,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           'timestamp': FieldValue.serverTimestamp(),
                         });
 
-                        // ✅ Send confirmation email with EmailJS
                         var status = await sendPaymentConfirmationEmail(
                             email: email,
                             userName: 'Hager Mohammed', // لو عندك اسم حقيقي بدّليه هنا
@@ -403,8 +403,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             context: context
                         );
                         if (status == true){
-                          await prefs.setBool("is_pro_user", true); // ← تفعيل الخطة المدفوعة
-                          await prefs.remove("image_generation_count"); // ← تصفير العداد المجاني
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.setBool('is_pro_user', true);
+                          await prefs.setInt('image_ai_usage', 0);
+                          await prefs.setInt('code_ai_usage', 0);
+                          await prefs.setInt('email_ai_usage', 0);
+                          await prefs.setInt('essay_ai_usage', 0);
+                          await prefs.setInt('summary_ai_usage', 0);
+                          await prefs.setInt('chat_ai_usage', 0);
                           QuickAlert.show(
                             context: context,
                             type: QuickAlertType.success,
@@ -419,10 +425,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             ),
                             onConfirmBtnTap: () {
                               Navigator.of(context).pop();
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(builder: (_) => const HomeScreen()),
-                              );
+                              Navigator.pushReplacementNamed(context, HomeScreen.routeName);
                             },
                           );
                         }else{

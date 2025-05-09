@@ -26,7 +26,17 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    loadProfileImage(); // ← كل مرة تفتح الصفحة أو drawer
+    _loadUserStatus();
+    loadProfileImage();
+  }
+
+  bool isProUser = false;
+  Future<void> _loadUserStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final bool isPro = prefs.getBool('is_pro_user') ?? false;
+    setState(() {
+      isProUser = isPro;
+    });
   }
 
   void loadProfileImage() async {
@@ -42,8 +52,15 @@ class _HomeScreenState extends State<HomeScreen> {
       AiToolsContainer(
         text: 'Chat Bot',
         imagePath: 'assets/images/chatbot.png',
-        onTap: () {
-          Navigator.pushNamed(context, NewChatBot.routeName,arguments: {"from": "home"},);
+        onTap: () async {
+          final prefs = await SharedPreferences.getInstance();
+          final lastChatId = prefs.getString("chat_id_chatbot");
+          Navigator.pushNamed(
+            context,
+            NewChatBot.routeName,
+            arguments: {"chatId": lastChatId},
+          );
+          print(lastChatId);
         },
       ),
       AiToolsContainer(
@@ -52,12 +69,12 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: () async {
           final prefs = await SharedPreferences.getInstance();
           final lastChatId = prefs.getString("chatId_image_generation");
-
           Navigator.pushNamed(
             context,
             ImageGeneration.routeName,
-            arguments: lastChatId, // ← حتى لو null، مفيش مشكلة
+            arguments: {"chatId": lastChatId},
           );
+          print(lastChatId);
         },
       ),
       AiToolsContainer(
@@ -66,12 +83,12 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: () async {
           final prefs = await SharedPreferences.getInstance();
           final lastChatId = prefs.getString("chat_id_code");
-
           Navigator.pushNamed(
             context,
             CodeGenerator.routeName,
-            arguments: lastChatId,
+            arguments: {"chatId": lastChatId},
           );
+          print(lastChatId);
         },
       ),
       AiToolsContainer(
@@ -83,8 +100,9 @@ class _HomeScreenState extends State<HomeScreen> {
           Navigator.pushNamed(
             context,
             EmailWriter.routeName,
-            arguments: lastChatId,
+            arguments: {"chatId": lastChatId},
           );
+          print(lastChatId);
         },
       ),
       AiToolsContainer(
@@ -93,12 +111,12 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: () async {
           final prefs = await SharedPreferences.getInstance();
           final lastChatId = prefs.getString("chat_id_summary");
-
           Navigator.pushNamed(
             context,
             TextSummarizer.routeName,
             arguments: lastChatId,
           );
+          print(lastChatId);
         },
       ),
       AiToolsContainer(
@@ -112,6 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
             EssayWriter.routeName,
             arguments: lastChatId,
           );
+          print(lastChatId);
         },
       ),
     ];
@@ -214,10 +233,5 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       )
       );
-  }
-  Future<void> clearAllPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-    print("🧹 All SharedPreferences cleared.");
   }
 }

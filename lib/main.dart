@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genio_ai/features/FACs_screen.dart';
 import 'package:genio_ai/features/account/account_settings.dart';
 import 'package:genio_ai/features/chat_bot/new_chat.dart';
 import 'package:genio_ai/features/code_generator/code_generator_screen.dart';
+import 'package:genio_ai/features/customer_support/customer_support_screen.dart';
 import 'package:genio_ai/features/email_writer/email_writer_screen.dart';
 import 'package:genio_ai/features/essay_writer/essay_writer_screen.dart';
 import 'package:genio_ai/features/home_screen/homescreen.dart';
@@ -13,6 +15,7 @@ import 'package:genio_ai/features/register/register.dart';
 import 'package:genio_ai/features/splash_screen/splash_screen.dart';
 import 'package:genio_ai/features/text_summerizer/text_summerizer_screen.dart';
 import 'package:genio_ai/features/upgrade_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'features/forget_password/data/repositry/done_repository.dart';
 import 'features/forget_password/data/repositry/reset_password_repository.dart';
 import 'features/forget_password/presentation/bloc/done_bloc.dart';
@@ -27,6 +30,15 @@ import 'package:firebase_core/firebase_core.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.remove('image_ai_usage');
+  await prefs.remove('code_ai_usage');
+  await prefs.remove('email_ai_usage');
+  await prefs.remove('essay_ai_usage');
+  await prefs.remove('summary_ai_usage');
+  await prefs.remove('chat_ai_usage');
+  await prefs.remove('is_pro_user');
+
   runApp(const MyApp());
 }
 
@@ -53,13 +65,21 @@ class MyApp extends StatelessWidget {
           Login.routeName:(_)=>Login(),
           Register.routeName:(_)=>Register(),
           //ChatBot.routeName:(_)=>ChatBot(),
-          NewChatBot.routeName: (context) => const NewChatBot(),
+          //NewChatBot.routeName: (context) => const NewChatBot(),
+          NewChatBot.routeName: (context) {
+            final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+            final from = args?['from'];
+
+            final bool startNew = (from != "home"); // ✅ لو مش من home نبدأ شات جديد
+
+            return NewChatBot(startNewChat: startNew);
+          },
           HomeScreen.routeName:(_)=>HomeScreen(),
           OnBoardingScreen.routeName:(_)=>OnBoardingScreen(),
           AccountSettings.routeName:(_)=>AccountSettings(),
           ProfileScreen.routeName:(_)=>ProfileScreen(),
           NewChatBot.routeName:(_)=>NewChatBot(),
-          ImageGeneration.routeName:(_)=>ImageGeneration(),
+          ImageGeneration.routeName: (context) => const ImageGeneration(),
           CodeGenerator.routeName:(_)=>CodeGenerator(),
           EmailWriter.routeName:(_)=>EmailWriter(),
           TextSummarizer.routeName:(_)=>TextSummarizer(),
@@ -72,6 +92,8 @@ class MyApp extends StatelessWidget {
               planPrice: args['planPrice'],
             );
           },
+          CustomerSupportScreen.routeName:(_)=>CustomerSupportScreen(),
+          FAQScreen.routeName:(_)=>FAQScreen(),
         },
         home:SplashScreen(),
         theme: ThemeData(

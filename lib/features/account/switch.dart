@@ -21,7 +21,6 @@ class _SwitchExampleState extends State<SwitchExample> {
         WidgetState.disabled: Colors.grey.shade400,
       },
     );
-
     return Switch(
       value: light,
       overlayColor: overlayColor,

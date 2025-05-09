@@ -66,15 +66,15 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                 price: "0",
                 planTitle: "Try Genio AI with limited access to tools",
                 planBtnText: 'Get Free',
-                text1: '10 AI chat messages per month',
-                text2: '3 image generations',
+                text1: '2 AI chat messages per month',
+                text2: '2 image generations',
                 text3:
-                    'Essay Writer: Generate up to 2 essays/month (max 800 words each)',
+                    'Essay Writer: Generate up to 2 essays/day (max 800 words each)',
                 text4:
-                    "Code Generator: 5 code generations/month (basic level only)",
+                    "Code Generator: 2 code generations/day (basic level only)",
                 text5:
-                    "Email Writer: Write up to 3 emails/month (no templates)",
-                text6: "Basic summarization (up to 500 words)",
+                    "Email Writer: Write up to 2 emails/day (no templates)",
+                text6: "Basic summarization (up to 200 words)",
                 onTap: () {
                   print('Done');
                     QuickAlert.show(

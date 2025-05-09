@@ -2,9 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-
 import 'login/presentation/login.dart';
 
 class OnBoardingScreen extends StatefulWidget {
@@ -68,8 +66,8 @@ class _OnboardingScreenState extends State<OnBoardingScreen> {
               child: TextButton(
                 onPressed: () {},
                 child: GestureDetector(
-                  onTap: () {
-                    Navigator.pushReplacement(
+                  onTap: () async{
+                   Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(builder: (context) => Login()),
                     );
@@ -125,7 +123,7 @@ class _OnboardingScreenState extends State<OnBoardingScreen> {
                   );
                 }
               },
-              child: Container(child: Image.asset('assets/images/icon.png')),
+              child: Container(child: Image.asset('assets/images/arrow3.png')),
             ),
             const SizedBox(height: 20),
           ],

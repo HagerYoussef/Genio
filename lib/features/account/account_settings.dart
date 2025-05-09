@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:genio_ai/features/FACs_screen.dart';
 import 'package:genio_ai/features/account/switch.dart';
+import 'package:genio_ai/features/customer_support/customer_support_screen.dart';
 import 'package:genio_ai/features/home_screen/homescreen.dart';
 import 'package:genio_ai/features/login/presentation/login.dart';
 import 'package:genio_ai/features/login/presentation/widgets/text_auth.dart';
@@ -87,7 +89,6 @@ class _AccountSettingsState extends State<AccountSettings> {
             context,
             ProfileScreen.routeName,
           ),
-          // _buildSwitchTile('Notifications', Icons.notifications, true),
           _buildTile(
             null,
             'Delete Account',
@@ -95,10 +96,9 @@ class _AccountSettingsState extends State<AccountSettings> {
             context,
             '',
           ),
-
-          //SizedBox(height: 20),
-          //_buildSectionTitle('Settings'),
-          //_buildSwitchTile('Light mode', Icons.light_mode, false),
+          SizedBox(height: 20),
+          _buildSectionTitle('Settings'),
+          //_buildSwitchTile('Theme', Icons.light_mode, false),
           //_buildTileWithValue('Languages', Icons.language, 'English'),
           SizedBox(height: 20),
           _buildSectionTitle('Support'),
@@ -107,14 +107,14 @@ class _AccountSettingsState extends State<AccountSettings> {
             'FAQs',
             'assets/images/question.png',
             context,
-            ProfileScreen.routeName,
+            FAQScreen.routeName,
           ),
           _buildTile(
             {"from": "Account"},
             'Customer Support',
             'assets/images/music-play.png',
             context,
-            ProfileScreen.routeName,
+            CustomerSupportScreen.routeName,
           ),
           SizedBox(height: 20),
           _buildSectionTitle('Upgrade'),
@@ -221,12 +221,12 @@ class _AccountSettingsState extends State<AccountSettings> {
     );
   }
 
-  Widget _buildSwitchTile(String title, IconData icon, bool value) {
+  /*Widget _buildSwitchTile(String title, IconData icon, bool value) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: ImageIcon(AssetImage('assets/images/notification.png')),
+      leading: ImageIcon(AssetImage('assets/images/sun.png')),
       title: TextAuth(
-        text: 'Notifications',
+        text: 'Theme',
         size: 16,
         fontWeight: FontWeight.w500,
         color: Colors.black,
@@ -234,6 +234,7 @@ class _AccountSettingsState extends State<AccountSettings> {
       trailing: SwitchExample(),
     );
   }
+   */
 
   Widget _buildTileWithValue(String title, IconData icon, String valueText) {
     return ListTile(

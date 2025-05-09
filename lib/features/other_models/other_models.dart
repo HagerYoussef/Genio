@@ -86,13 +86,13 @@ class _OtherModelsState extends State<OtherModels> {
               context,
               icon: 'assets/images/image generation.png',
               title: 'image generation',
-                route: ImageGeneration.routeName
+              route: ImageGeneration.routeName
             ),
             _buildFeatureTile(
               context,
               icon: 'assets/images/Code Generator.png',
               title: 'Code Generator',
-                route: CodeGenerator.routeName
+              route: CodeGenerator.routeName
             ),
             _buildFeatureTile(
               context,
@@ -104,7 +104,7 @@ class _OtherModelsState extends State<OtherModels> {
               context,
               icon: 'assets/images/Text Summarizer.png',
               title: 'Text Summarizer',
-                route: TextSummarizer.routeName
+              route: TextSummarizer.routeName
             ),
             /*
             _buildFeatureTile(
@@ -118,7 +118,7 @@ class _OtherModelsState extends State<OtherModels> {
               context,
               icon: 'assets/images/Essay Writer.png',
               title: 'Essay Writer',
-                route: EssayWriter.routeName
+              route: EssayWriter.routeName
             ),
           ],
         ),
@@ -133,8 +133,30 @@ class _OtherModelsState extends State<OtherModels> {
         onTap: () async {
           final prefs = await SharedPreferences.getInstance();
           final newChatId = const Uuid().v4();
-          await prefs.setString('chatId', newChatId); // 🆕 تخزين chatId جديد
-          Navigator.pushNamed(context, route, arguments: newChatId);
+
+          // نحفظ حسب الموديل
+          if (route == NewChatBot.routeName) {
+            await prefs.setString('chatId_chatbot', newChatId);
+          } else if (route == EssayWriter.routeName) {
+            await prefs.setString('chatId_essay', newChatId);
+          } else if (route == CodeGenerator.routeName) {
+            await prefs.setString('chatId_code', newChatId);
+          } else if (route == EmailWriter.routeName) {
+            await prefs.setString('chatId_email', newChatId);
+          } else if (route == ImageGeneration.routeName) {
+            await prefs.setString('chatId_image_generation', newChatId);
+          } else if (route == TextSummarizer.routeName) {
+            await prefs.setString('chatId_summary', newChatId);
+          }
+
+          Navigator.pushNamed(
+            context,
+            route,
+            arguments: {
+              "from": "other",
+              "chatId": newChatId,
+            },
+          );
         },
         child: Container(
           height: 76,

@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'package:quickalert/models/quickalert_type.dart';
 import 'dart:convert';
-import 'package:quickalert/widgets/quickalert_dialog.dart';
-
-import '../home_screen/homescreen.dart';
 
 Future<bool> sendPaymentConfirmationEmail({
   required String email,
