@@ -20,14 +20,10 @@ class AppRoutes {
   static Future<Map<String, dynamic>> get routes async => {
     Login.routeName:(_)=>Login(),
     Register.routeName:(_)=>Register(),
-//ChatBot.routeName:(_)=>ChatBot(),
-//NewChatBot.routeName: (context) => const NewChatBot(),
     NewChatBot.routeName: (context) {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       final from = args?['from'];
-
-      final bool startNew = (from != "home"); // ✅ لو مش من home نبدأ شات جديد
-
+      final bool startNew = (from != "home");
       return NewChatBot(startNewChat: startNew);
     },
     HomeScreen.routeName:(_)=>HomeScreen(),

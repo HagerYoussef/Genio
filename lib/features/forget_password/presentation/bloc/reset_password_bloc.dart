@@ -2,14 +2,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/repositry/reset_password_repository.dart';
 
-// Events
 abstract class ResetPasswordEvent {}
 class SendResetRequest extends ResetPasswordEvent {
   final String email;
   SendResetRequest(this.email);
 }
 
-// States
 abstract class ResetPasswordState {}
 class ResetPasswordInitial extends ResetPasswordState {}
 class ResetPasswordLoading extends ResetPasswordState {}
@@ -22,7 +20,6 @@ class ResetPasswordFailure extends ResetPasswordState {
   ResetPasswordFailure(this.error);
 }
 
-// Bloc
 class ResetPasswordBloc extends Bloc<ResetPasswordEvent, ResetPasswordState> {
   final ResetPasswordRepository repository;
 

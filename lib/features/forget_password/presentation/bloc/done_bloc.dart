@@ -1,8 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-//Events
 import 'package:equatable/equatable.dart';
-
 import '../../data/repositry/done_repository.dart';
 
 abstract class DoneEvent extends Equatable {
@@ -20,8 +17,6 @@ class ResetPasswordEvent extends DoneEvent {
   @override
   List<Object> get props => [userId, password, confirmPassword];
 }
-
-//Status
 abstract class DoneState extends Equatable {
   @override
   List<Object> get props => [];
@@ -49,7 +44,6 @@ class DoneFailure extends DoneState {
   List<Object> get props => [error];
 }
 
-//Bloc
 class DoneBloc extends Bloc<DoneEvent, DoneState> {
   final DoneRepository repository;
 

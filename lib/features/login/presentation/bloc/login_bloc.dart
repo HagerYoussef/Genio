@@ -1,5 +1,4 @@
 import 'package:bloc/bloc.dart';
-import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/repository/login_repository.dart';
@@ -29,7 +28,7 @@ class AuthInitial extends AuthState {}
 class AuthLoading extends AuthState {}
 
 class AuthSuccess extends AuthState {
-  final String userId; // ✅ Add userId
+  final String userId;
 
   AuthSuccess({required this.userId});
 }
@@ -58,7 +57,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         String userId = response['userId'];
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString("userId", userId);
-        print("✅ Stored userId: $userId");
+        print("Stored userId: $userId");
 
         emit(AuthSuccess(userId: userId));
       } else {

@@ -38,7 +38,6 @@ class ResetCodeFailure extends ResetCodeState {
   List<Object> get props => [errorMessage];
 }
 
-// Bloc
 class ResetCodeBloc extends Bloc<ResetCodeEvent, ResetCodeState> {
   final ResetCodeRepository repository;
 
