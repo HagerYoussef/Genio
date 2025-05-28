@@ -52,7 +52,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
 
   Future<void> _onRegisterSubmitted(RegisterSubmitted event, Emitter<RegisterState> emit) async {
     emit(RegisterLoading());
-    const String url = "https://genio-rust.vercel.app/api/signup";
+    const String url = "https://back-end-api.genio.ae/api/signup";
 
     try {
       final response = await http.post(

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
 import '../../models/done_model.dart';
 
 class DoneRepository {
@@ -9,7 +8,7 @@ class DoneRepository {
     required String password,
     required String confirmPassword,
   }) async {
-    final url = Uri.parse("https://genio-rust.vercel.app/api/reset/$userId");
+    final url = Uri.parse("https://back-end-api.genio.ae/api/reset/$userId");
 
     final response = await http.post(
       url,

@@ -30,13 +30,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // استقبال الـ arguments
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is Map && args.containsKey("from")) {
       from = args["from"];
     }
 
-    // تحميل الصورة
     loadProfileImage();
   }
 
@@ -74,7 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               if (from == "homeDrawer") {
                 Navigator.pushReplacementNamed(context, HomeScreen.routeName); // غيّري ده حسب اسم الراوت بتاع الهوم
               } else {
-                Navigator.pop(context); // يرجع لللي قبله عادي
+                Navigator.pop(context);
               }
             },
             child: const ImageIcon(
@@ -110,7 +108,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     File imageFile = File(pickedFile.path);
 
-                    // ⬆️ رفع على Cloudinary
                     const cloudName = 'dudmtqpoj';
                     const uploadPreset = 'flutter_upload';
                     final uploadUrl = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
@@ -128,7 +125,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     final resBody = await uploadResponse.stream.bytesToString();
                     final imageUrl = json.decode(resBody)['secure_url'];
 
-                    // 🟦 الآن نرسل رابط الصورة إلى الـ API كـ multipart لكن كـ "string" فقط
                     final uri = Uri.parse('https://back-end-api.genio.ae/api/user/edit/image');
                     final request = http.MultipartRequest('PATCH', uri);
 

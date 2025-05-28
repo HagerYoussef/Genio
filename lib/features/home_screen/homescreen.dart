@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:genio_ai/features/account/account_settings.dart';
 import 'package:genio_ai/features/chat_bot/new_chat.dart';
-import 'package:genio_ai/features/code_generator/code_generator_screen.dart';
-import 'package:genio_ai/features/email_writer/email_writer_screen.dart';
-import 'package:genio_ai/features/essay_writer/essay_writer_screen.dart';
 import 'package:genio_ai/features/history/history_screen.dart';
 import 'package:genio_ai/features/home_screen/presentation/widgets/ai_tools_container.dart';
 import 'package:genio_ai/features/image_generation/image_generation_screen.dart';
 import 'package:genio_ai/features/other_models/other_models.dart';
-import 'package:genio_ai/features/text_summerizer/text_summerizer_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../login/presentation/widgets/text_auth.dart';
 import '../upgrade_screen.dart';
@@ -85,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
           final lastChatId = prefs.getString("chat_id_code");
           Navigator.pushNamed(
             context,
-            CodeGenerator.routeName,
+            NewChatBot.routeName,
             arguments: {"chatId": lastChatId},
           );
           print(lastChatId);
@@ -99,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
           final lastChatId = prefs.getString("chat_id_email");
           Navigator.pushNamed(
             context,
-            EmailWriter.routeName,
+            NewChatBot.routeName,
             arguments: {"chatId": lastChatId},
           );
           print(lastChatId);
@@ -113,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
           final lastChatId = prefs.getString("chat_id_summary");
           Navigator.pushNamed(
             context,
-            TextSummarizer.routeName,
+            NewChatBot.routeName,
             arguments: lastChatId,
           );
           print(lastChatId);
@@ -127,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
           final lastChatId = prefs.getString("chat_id_essay");
           Navigator.pushNamed(
             context,
-            EssayWriter.routeName,
+            NewChatBot.routeName,
             arguments: lastChatId,
           );
           print(lastChatId);
@@ -225,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisSpacing: 10,
               childAspectRatio: 130 / 120,
             ),
-            itemCount: aiTools.length, // عدد العناصر في الشبكة
+            itemCount: aiTools.length,
             itemBuilder: (context, index) {
               return aiTools[index];
             },

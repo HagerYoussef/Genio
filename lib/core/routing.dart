@@ -2,10 +2,6 @@ import 'package:flutter/cupertino.dart';
 import '../features/FACs_screen.dart';
 import '../features/account/account_settings.dart';
 import '../features/chat_bot/new_chat.dart';
-import '../features/code_generator/code_generator_screen.dart';
-import '../features/customer_support/customer_support_screen.dart';
-import '../features/email_writer/email_writer_screen.dart';
-import '../features/essay_writer/essay_writer_screen.dart';
 import '../features/home_screen/homescreen.dart';
 import '../features/image_generation/image_generation_screen.dart';
 import '../features/login/presentation/login.dart';
@@ -13,7 +9,6 @@ import '../features/on_boarding_screen.dart';
 import '../features/payment/payment_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/register/register.dart';
-import '../features/text_summerizer/text_summerizer_screen.dart';
 import '../features/upgrade_screen.dart';
 
 class AppRoutes {
@@ -32,10 +27,10 @@ class AppRoutes {
     ProfileScreen.routeName:(_)=>ProfileScreen(),
     NewChatBot.routeName:(_)=>NewChatBot(),
     ImageGeneration.routeName: (context) => const ImageGeneration(),
-    CodeGenerator.routeName:(_)=>CodeGenerator(),
-    EmailWriter.routeName:(_)=>EmailWriter(),
-    TextSummarizer.routeName:(_)=>TextSummarizer(),
-    EssayWriter.routeName:(_)=>EssayWriter(),
+    //CodeGenerator.routeName:(_)=>CodeGenerator(),
+    //EmailWriter.routeName:(_)=>EmailWriter(),
+    //TextSummarizer.routeName:(_)=>TextSummarizer(),
+    //EssayWriter.routeName:(_)=>EssayWriter(),
     UpgradeScreen.routeName:(_)=>UpgradeScreen(),
     PaymentScreen.routeName: (context) {
       final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
@@ -44,7 +39,6 @@ class AppRoutes {
         planPrice: args['planPrice'],
       );
     },
-    CustomerSupportScreen.routeName:(_)=>CustomerSupportScreen(),
     FAQScreen.routeName:(_)=>FAQScreen(),
 
   };

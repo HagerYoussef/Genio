@@ -7,8 +7,6 @@ import 'package:genio_ai/features/login/presentation/widgets/text_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
-import '../image_generation/image_generation_screen.dart';
-
 class History extends StatefulWidget {
   const History({super.key});
 
@@ -38,63 +36,32 @@ class _HistoryState extends State<History> {
   }
 
   Future<void> _loadChatList() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString('local_chats');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('accessToken');
 
-    if (raw != null) {
-      final Map<String, dynamic> allChats = json.decode(raw);
-      groupedPreviews.clear();
-////////////////////////////////////////
-      // 🔹 Step 1: Load image generation previews
-      final previewRaw = prefs.getString('local_chats_preview');
+      final response = await http.get(
+        Uri.parse('https://back-end-api.genio.ae/api/user/chat'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final List data = json.decode(response.body);
 
-      if (previewRaw != null) {
-        final Map<String, dynamic> imageChats = json.decode(previewRaw);
+        groupedPreviews.clear();
 
-        imageChats.forEach((chatId, chatData) {
-          final preview = chatData['preview'];
-          final timestamp = chatData['timestamp'];
+        for (var chat in data) {
+          final String chatId = chat['id'];
+          final String preview = chat['name'];
+          final String createdAt = chat['createdAt'];
 
-          if (preview != null && timestamp != null) {
-            final parsedDate = DateTime.tryParse(timestamp);
-            if (parsedDate != null) {
-              final dateKey = DateFormat('yyyy-MM-dd').format(parsedDate);
-              final displayDate = DateFormat('d MMMM').format(parsedDate);
+          final parsedDate = DateTime.tryParse(createdAt);
+          if (parsedDate == null) continue;
 
-              if (!groupedPreviews.containsKey(dateKey)) {
-                groupedPreviews[dateKey] = [];
-              }
-
-              groupedPreviews[dateKey]!.add({
-                'chatId': chatId,
-                'preview': preview,
-                'displayDate': displayDate,
-              });
-            }
-          }
-        });
-      }
-///////////////////////////////////
-      allChats.forEach((chatId, chatMessages) {
-        final List messages = chatMessages;
-
-        final userMsg = messages.firstWhere(
-          (msg) => msg['sender'] == 'user' && msg['timestamp'] != null,
-          orElse: () => null,
-        );
-
-        if (userMsg != null) {
-          final text = userMsg['text'] ?? '';
-          final timestamp = userMsg['timestamp'];
-          final preview = prefs.getString('_preview_$chatId') ?? text.split(' ').take(10).join(' ');
-
-          final parsedDate = DateTime.parse(timestamp);
-          final dateKey = DateFormat(
-            'yyyy-MM-dd',
-          ).format(parsedDate); // للتجميع
-          final displayDate = DateFormat(
-            'd MMMM',
-          ).format(parsedDate); // ← لعرض "21 April"
+          final dateKey = DateFormat('yyyy-MM-dd').format(parsedDate);
+          final displayDate = DateFormat('d MMMM').format(parsedDate);
 
           if (!groupedPreviews.containsKey(dateKey)) {
             groupedPreviews[dateKey] = [];
@@ -105,13 +72,16 @@ class _HistoryState extends State<History> {
             'preview': preview,
             'displayDate': displayDate,
           });
-        } else {
-          print("⛔️ Skipping chat [$chatId] with no timestamp.");
         }
-      });
-      setState(() {
-        groupedPreviews = Map.fromEntries(groupedPreviews.entries.toList().reversed);
-      });
+
+        setState(() {
+          groupedPreviews = Map.fromEntries(groupedPreviews.entries.toList().reversed);
+        });
+      } else {
+        print('❌ Failed to load chats from API: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error loading chats: $e');
     }
   }
 
@@ -261,75 +231,21 @@ class _HistoryState extends State<History> {
   Widget _buildItem(Map<String, String> chat) {
     return ListTile(
       dense: true,
-      title: Row(
-        children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 50, bottom: 5),
-              child: TextAuth(
-                text: chat['preview']!,
-                size: 14,
-                fontWeight: FontWeight.w400,
-                color: const Color(0XFF004B67),
-              ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete, size: 20, color: Color.fromRGBO(236, 100, 90, 1)),
-            onPressed: () async {
-              final prefs = await SharedPreferences.getInstance();
-              final chatId = chat['chatId']!;
-
-              final rawChats = prefs.getString('local_chats');
-              if (rawChats != null) {
-                final Map<String, dynamic> allChats = json.decode(rawChats);
-                allChats.remove(chatId);
-                await prefs.setString('local_chats', json.encode(allChats));
-              }
-
-              // 2. كمان احذف من local_chats_preview لو موجود
-              final rawPreviews = prefs.getString('local_chats_preview');
-              if (rawPreviews != null) {
-                final Map<String, dynamic> allPreviews = json.decode(rawPreviews);
-                allPreviews.remove(chatId);
-                await prefs.setString('local_chats_preview', json.encode(allPreviews));
-              }
-
-              // 3. اعمل ريفرش للقائمة
-              await _loadChatList();
-            },
-          ),
-        ],
+      title: Padding(
+        padding: const EdgeInsets.only(left: 50, bottom: 5),
+        child: TextAuth(
+          text: chat['preview']!,
+          size: 14,
+          fontWeight: FontWeight.w400,
+          color: const Color(0XFF004B67),
+        ),
       ),
-      onTap: () async {
-        final prefs = await SharedPreferences.getInstance();
-        final chatId = chat['chatId']!;
-
-        final raw = prefs.getString('local_chats_preview');
-        String? type;
-
-        if (raw != null) {
-          final Map<String, dynamic> previews = json.decode(raw);
-          type = previews[chatId]?['type'];
-        }
-
-        Navigator.of(context).pop();
-
-        if (type == 'image') {
-          await prefs.setString('chatId_image_generation', chatId);
-          Navigator.pushReplacementNamed(context, ImageGeneration.routeName);
-        } else if (type == 'code') {
-          Navigator.pushReplacementNamed(context, 'CodeGenerator', arguments: chatId);
-        } else if (type == 'email') {
-          Navigator.pushReplacementNamed(context, 'EmailWriter', arguments: chatId);
-        } else if (type == 'summary') {
-          Navigator.pushReplacementNamed(context, 'TextSummarizer', arguments: chatId);
-        } else if (type == 'essay') {
-          Navigator.pushReplacementNamed(context, 'EssayWriter', arguments: chatId);
-        } else {
+        /*onTap: () async {
+          final chatId = chat['chatId']!;
+          Navigator.of(context).pop();
           Navigator.pushReplacementNamed(context, NewChatBot.routeName, arguments: {"chatId": chatId});
-        }
-      },
+        },
+         */
     );
   }
 

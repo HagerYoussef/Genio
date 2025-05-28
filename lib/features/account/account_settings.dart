@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genio_ai/features/FACs_screen.dart';
 import 'package:genio_ai/features/account/switch.dart';
-import 'package:genio_ai/features/customer_support/customer_support_screen.dart';
 import 'package:genio_ai/features/home_screen/homescreen.dart';
 import 'package:genio_ai/features/login/presentation/login.dart';
 import 'package:genio_ai/features/login/presentation/widgets/text_auth.dart';
@@ -96,8 +95,6 @@ class _AccountSettingsState extends State<AccountSettings> {
             context,
             '',
           ),
-          SizedBox(height: 20),
-          _buildSectionTitle('Settings'),
           //_buildSwitchTile('Theme', Icons.light_mode, false),
           //_buildTileWithValue('Languages', Icons.language, 'English'),
           SizedBox(height: 20),
@@ -109,14 +106,6 @@ class _AccountSettingsState extends State<AccountSettings> {
             context,
             FAQScreen.routeName,
           ),
-          _buildTile(
-            {"from": "Account"},
-            'Customer Support',
-            'assets/images/music-play.png',
-            context,
-            CustomerSupportScreen.routeName,
-          ),
-          SizedBox(height: 20),
           _buildSectionTitle('Upgrade'),
           _buildTile(
             null,

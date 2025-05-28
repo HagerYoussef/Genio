@@ -1,26 +1,44 @@
 {
   "project_info": {
-    "project_number": "277755568174",
-    "project_id": "iti-graduation-project-92150",
-    "storage_bucket": "iti-graduation-project-92150.firebasestorage.app"
+    "project_number": "1026278092373",
+    "project_id": "genio-c8509",
+    "storage_bucket": "genio-c8509.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:277755568174:android:1125225a433ad52a413fbf",
+        "mobilesdk_app_id": "1:1026278092373:android:1c05ef068c82939991eedc",
         "android_client_info": {
           "package_name": "com.example.genio_ai"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1026278092373-t9325th71kqo45a1mhid9qqo399aq8dt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.genio_ai",
+            "certificate_hash": "2b0b77e29bda5b64b9d1b1bcf309cae2bf7a12b2"
+          }
+        },
+        {
+          "client_id": "1026278092373-p7hilf9mspt72o7mum5ta8vgritnnm24.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyBqEwTk0PSPyjcVE1KqCXxK-VuCo9cmJq0"
+          "current_key": "AIzaSyDQB5mJd1gvxALH3e9ASkAu4nUtfBj6FB4"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1026278092373-p7hilf9mspt72o7mum5ta8vgritnnm24.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

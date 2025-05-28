@@ -8,7 +8,7 @@ class AuthRepository {
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
       final response = await _dio.post(
-        'https://genio-rust.vercel.app/api/login',
+        'https://back-end-api.genio.ae/api/login',
         data: {'email': email, 'password': password},
       );
 
@@ -33,7 +33,6 @@ class AuthRepository {
             return {'success': true, 'userId': userId};
           }
         }
-
       }
       return {'success': false, 'message': 'Login failed'};
     } catch (e) {

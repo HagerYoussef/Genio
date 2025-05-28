@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genio_ai/features/account/account_settings.dart';
-import 'package:genio_ai/features/customer_support/customer_support_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:quickalert/models/quickalert_type.dart';
 import 'package:quickalert/widgets/quickalert_dialog.dart';
@@ -123,7 +122,7 @@ class FAQScreen extends StatelessWidget {
                     padding: EdgeInsets.only(right: 2),
                     child: ElevatedButton(
                       onPressed: () async {
-                        CallHelper.makePhoneCall(context, '01151116632');
+                        CallHelper.makePhoneCall(context, '01029306443');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
@@ -137,31 +136,6 @@ class FAQScreen extends StatelessWidget {
                         size: 18,
                         fontWeight: FontWeight.w500,
                         color: Color(0xff0047AB),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(left: 2),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushNamed(
-                          context,
-                          CustomerSupportScreen.routeName,
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0047AB),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: TextAuth(
-                        text: 'Support',
-                        size: 18,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
                       ),
                     ),
                   ),

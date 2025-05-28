@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class ResetPasswordRepository {
   Future<String> sendResetRequest(String email) async {
-    final url = Uri.parse("https://genio-rust.vercel.app/api/resetRequest");
+    final url = Uri.parse("https://back-end-api.genio.ae/api/resetRequest");
 
     try {
       final response = await http.post(

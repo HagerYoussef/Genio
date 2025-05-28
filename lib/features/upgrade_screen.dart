@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:genio_ai/features/account/account_settings.dart';
 import 'package:genio_ai/features/home_screen/homescreen.dart';
@@ -6,6 +8,8 @@ import 'package:genio_ai/features/payment/payment_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:quickalert/models/quickalert_type.dart';
 import 'package:quickalert/widgets/quickalert_dialog.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class UpgradeScreen extends StatefulWidget {
   static String routeName = 'upgrade screen';
@@ -18,6 +22,50 @@ class UpgradeScreen extends StatefulWidget {
 
 class _UpgradeScreenState extends State<UpgradeScreen> {
   String? _from;
+  Map<String, dynamic>? userData;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserProfile();
+  }
+
+  Future<String?> getAccessToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('accessToken') ?? prefs.getString('token');
+  }
+
+
+  Future<Map<String, dynamic>?> fetchUserProfile() async {
+    final token = await getAccessToken();
+    print("Token before request: $token");
+
+    final response = await http.get(
+      Uri.parse("https://back-end-api.genio.ae/api/user/profile"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json"
+      },
+    );
+
+    print("Profile fetch status: ${response.statusCode}");
+    print(response.body);
+
+    if (response.statusCode == 200) {
+      setState(() {
+        userData = jsonDecode(response.body);
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+    }
+
+    return userData;
+  }
+
 
   @override
   void didChangeDependencies() {
@@ -26,6 +74,78 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
     if (args is Map<String, dynamic>) {
       _from = args['from'];
     }
+  }
+
+  Future<Map<String, dynamic>> makePaymentRequest({
+    required String plan,
+    required String userId,
+    required String email,
+    required String firstName,
+    required String lastName,
+    required String countryCode,
+    required String phone,
+    required String currency,
+    String? voucher,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("accessToken") ?? prefs.getString("token") ?? "";
+
+    final uri = Uri.parse('https://back-end-api.genio.ae/api/payment');
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    final body = {
+      "plan": plan,
+      "userId": userId,
+      "email": email,
+      "firstname": firstName,
+      "lastname": lastName,
+      "countrycode": countryCode,
+      "phone": phone,
+      "currency": currency,
+      if (voucher != null) "voucher": voucher,
+    };
+
+    print("Request Headers: $headers");
+
+    final response = await http.post(uri, headers: headers, body: jsonEncode(body));
+    print("Payment API status: ${response.statusCode}");
+    print("Payment API body: ${response.body}");
+
+    final jsonResponse = jsonDecode(response.body);
+
+    if (response.statusCode == 200) return jsonResponse;
+    return {"error": jsonResponse["error"] ?? response.body};
+  }
+
+  Future<Map<String, String?>> getAuthInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final accessToken = prefs.getString('accessToken');
+    final googleToken = prefs.getString('token');
+    final userIdFromPrefs = prefs.getString('userId');
+
+    String? token = accessToken ?? googleToken;
+    String? userId;
+
+    if (googleToken != null) {
+      try {
+        final parts = googleToken.split('.');
+        if (parts.length == 3) {
+          final payload = jsonDecode(utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))));
+          userId = payload['uid'];
+        }
+      } catch (e) {
+        print("❌ Failed to decode Google JWT: $e");
+      }
+    }
+    userId ??= userIdFromPrefs;
+    return {
+      'token': token,
+      'userId': userId,
+    };
   }
 
   @override
@@ -75,22 +195,63 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                 text5:
                     "Email Writer: Write up to 2 emails/day (no templates)",
                 text6: "Basic summarization (up to 200 words)",
-                onTap: () {
-                  print('Done');
+                btnColor: Color(0xff4D7EC4),
+                onPressed: () async {
+                  /*final token = await getAccessToken();
+                  print(token);
+
+                  final prefs = await SharedPreferences.getInstance();
+                  final userId = prefs.getString("userId") ?? "";
+                  if (userId.isEmpty) {
                     QuickAlert.show(
                       context: context,
-                      title: 'Info',
-                      text: 'You are already in this plan',
-                      type: QuickAlertType.info,
-                      confirmBtnColor: const Color(0xFF0047AB),
+                      type: QuickAlertType.error,
+                      title: "Error",
+                      text: "User info missing. Please log in again.",
                     );
+                    return;
+                  }
+
+                  userData ??= await fetchUserProfile();
+                  if (userData == null) {
+                    QuickAlert.show(
+                      context: context,
+                      type: QuickAlertType.error,
+                      title: "Error",
+                      text: "Could not load user profile.",
+                    );
+                    print("Could not load user profile.");
+                    return;
+                  }
+                  final response = await makePaymentRequest(
+                    plan: "free",
+                    userId: userId,
+                    voucher: null,
+                    email: userData!["email"],
+                    firstName: userData!["name"].split(" ").first,
+                    lastName: userData!["name"].split(" ").last,
+                    countryCode: userData!["countrycode"],
+                    phone: userData!["phone"],
+                    currency: "EGP",
+                  );
+
+                  if (response["redirectUrl"] != null) {
+                    launchUrl(Uri.parse(response["redirectUrl"]), mode: LaunchMode.externalApplication);
+                  } else {
+                    QuickAlert.show(
+                      context: context,
+                      type: QuickAlertType.error,
+                      title: "Error",
+                      text: response["error"] ?? "Unknown error",
+                    );
+                  }
+                   */
                 },
-                btnColor: Color(0xff4D7EC4),
               ),
               SizedBox(height: 20),
               PricingCard(
                 title: "Plus",
-                price: "80",
+                price: "20",
                 planTitle: "Enhanced access to all AI tools",
                 planBtnText: 'Get Plus',
                 text1: '500 AI chat messages per month',
@@ -99,22 +260,77 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                 text4: "Code Generator: 30 code generations (standard level)",
                 text5: "Email Writer: 50 emails/month with access to smart templates",
                 text6: "Advanced summarization (up to 2000 words)",
-                onTap: () {
-                  Navigator.pushNamed(
-                    context,
-                    PaymentScreen.routeName,
-                    arguments: {
-                      'planName': 'Plus',
-                      'planPrice': 80.0,
-                    },
-                  );
-                },
                 btnColor: Color(0xff40047AB),
+                onPressed: () async {
+
+                  final authInfo = await getAuthInfo();
+                  final token = authInfo['token'];
+                  final userId = authInfo['userId'] ?? "";
+
+                  if (userId.isEmpty) {
+                    QuickAlert.show(
+                      context: context,
+                      type: QuickAlertType.error,
+                      title: "Error",
+                      text: "User ID not found. Please log in again.",
+                    );
+                    return;
+                  }
+
+                  userData ??= await fetchUserProfile();
+                  if (userData == null) {
+                    QuickAlert.show(
+                      context: context,
+                      type: QuickAlertType.error,
+                      title: "Error",
+                      text: "Could not load user profile.",
+                    );
+                    return;
+                  }
+
+                  final phone = userData!["phone"] ?? "0000000000";
+                  final countryCode = userData!["countrycode"] ?? "+20";
+                  final email = userData!["email"] ?? "example@email.com";
+                  final fullName = userData!["name"] ?? "User Name";
+
+                  final firstName = fullName.split(" ").first;
+                  final lastName = fullName.split(" ").length > 1
+                      ? fullName.split(" ").sublist(1).join(" ")
+                      : "User";
+
+                  print("📤 Sending payment request with:");
+                  print("📞 $phone | 🌍 $countryCode | 👤 $firstName $lastName");
+
+
+                  final response = await makePaymentRequest(
+                    plan: "plus",
+                    userId: userId,
+                    voucher: null,
+                    email: email,
+                    firstName: firstName,
+                    lastName: lastName,
+                    countryCode: countryCode,
+                    phone: phone,
+                    currency: "EGP",
+                  );
+
+                  if (response["redirectUrl"] != null) {
+                    launchUrl(Uri.parse(response["redirectUrl"]),
+                        mode: LaunchMode.externalApplication);
+                  } else {
+                    QuickAlert.show(
+                      context: context,
+                      type: QuickAlertType.error,
+                      title: "Error",
+                      text: response["error"] ?? "Unknown error",
+                    );
+                  }
+                },
               ),
               SizedBox(height: 20),
               PricingCard(
                 title: "Super Plus",
-                price: "120",
+                price: "200",
                 planTitle: "Full power of Genio AI without limits",
                 planBtnText: 'Get Pro',
                 text1: 'Unlimited AI chat messages',
@@ -123,18 +339,57 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                 text4: "Code Generator: Unlimited with smart debugging & suggestions",
                 text5: "Email Writer: Unlimited with tone & formatting control",
                 text6: "Summarizer: Pro-level (up to 10,000 words, structured output)",
-                onTap: () {
-                  Navigator.pushNamed(
-                    context,
-                    PaymentScreen.routeName,
-                    arguments: {
-                      'planName': 'Super Plus',
-                      'planPrice': 120.0,
-                    },
+                btnColor: Color(0xff4DC4BE),
+                onPressed: () async {
+                  final token = await getAccessToken();
+                  print(token);
+                  final prefs = await SharedPreferences.getInstance();
+                  final userId = prefs.getString("userId") ?? "";
+                  if (userId.isEmpty) {
+                    QuickAlert.show(
+                      context: context,
+                      type: QuickAlertType.error,
+                      title: "Error",
+                      text: "User info missing. Please log in again.",
+                    );
+                    return;
+                  }
+
+                  userData ??= await fetchUserProfile();
+                  if (userData == null) {
+                    QuickAlert.show(
+                      context: context,
+                      type: QuickAlertType.error,
+                      title: "Error",
+                      text: "Could not load user profile.",
+                    );
+                    print("Could not load user profile.");
+                    return;
+                  }
+
+                  final response = await makePaymentRequest(
+                    plan: "superplus",
+                    userId: userId, // ✅ استخدم القيمة الفعلية
+                    voucher: null,
+                    email: userData!["email"],
+                    firstName: userData!["name"].split(" ").first,
+                    lastName: userData!["name"].split(" ").last,
+                    countryCode: userData!["countrycode"],
+                    phone: userData!["phone"],
+                    currency: "EGP",
                   );
 
+                  if (response["redirectUrl"] != null) {
+                    launchUrl(Uri.parse(response["redirectUrl"]), mode: LaunchMode.externalApplication);
+                  } else {
+                    QuickAlert.show(
+                      context: context,
+                      type: QuickAlertType.error,
+                      title: "Error",
+                      text: response["error"] ?? "Unknown error",
+                    );
+                  }
                 },
-                btnColor: Color(0xff4DC4BE),
               ),
             ],
           ),
@@ -155,8 +410,8 @@ class PricingCard extends StatelessWidget {
   final String text4;
   final String text5;
   final String text6;
-  VoidCallback onTap;
   final Color btnColor;
+  final VoidCallback onPressed;
 
   PricingCard({
     required this.title,
@@ -169,8 +424,8 @@ class PricingCard extends StatelessWidget {
     required this.text4,
     required this.text5,
     required this.text6,
-    required this.onTap,
     required this.btnColor,
+    required this.onPressed,
   });
 
   @override
@@ -247,7 +502,7 @@ class PricingCard extends StatelessWidget {
           ),
           SizedBox(height: 15),
           ElevatedButton(
-            onPressed: onTap,
+            onPressed: onPressed,
             style: ElevatedButton.styleFrom(
               backgroundColor: btnColor,
               foregroundColor: Colors.white,
@@ -397,7 +652,47 @@ class PricingCard extends StatelessWidget {
           ),
           SizedBox(height: 15),
           GestureDetector(
-            onTap: () {},
+            onTap: () async {
+              try {
+                final prefs = await SharedPreferences.getInstance();
+                final token = prefs.getString("accessToken") ?? "";
+
+
+                final response = await http.get(
+                  Uri.parse("https://back-end-api.genio.ae/api/user/currentplan"),
+                  headers: {
+                    "Authorization": "Bearer $token",
+                    "Content-Type": "application/json"
+                  },
+                );
+
+                if (response.statusCode == 200) {
+                  final data = jsonDecode(response.body);
+                  final plan = data["plan"];
+                  print(plan);
+                  QuickAlert.show(
+                    context: context,
+                    type: QuickAlertType.info,
+                    title: "Current Plan",
+                    text: "Your current plan is: $plan",
+                  );
+                } else {
+                  QuickAlert.show(
+                    context: context,
+                    type: QuickAlertType.error,
+                    title: "Error",
+                    text: "Failed to fetch current plan",
+                  );
+                }
+              } catch (e) {
+                QuickAlert.show(
+                  context: context,
+                  type: QuickAlertType.error,
+                  title: "Exception",
+                  text: e.toString(),
+                );
+              }
+            },
             child: Text(
               'Have an existing plan? See billing here',
               style: GoogleFonts.poppins(

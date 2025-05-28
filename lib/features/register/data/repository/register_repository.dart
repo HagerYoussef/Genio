@@ -4,7 +4,7 @@ import '../../models/user_signup_model.dart';
 
 class AuthRepository {
   Future<Map<String, dynamic>> registerUser(UserSignupModel user) async {
-    const String url = "https://genio-rust.vercel.app/api/signup";
+    const String url = "https://back-end-api.genio.ae/api/signup";
 
     try {
       final response = await http.post(

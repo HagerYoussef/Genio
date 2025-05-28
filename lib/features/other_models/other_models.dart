@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:genio_ai/features/chat_bot/new_chat.dart';
-import 'package:genio_ai/features/code_generator/code_generator_screen.dart';
-import 'package:genio_ai/features/email_writer/email_writer_screen.dart';
-import 'package:genio_ai/features/essay_writer/essay_writer_screen.dart';
 import 'package:genio_ai/features/image_generation/image_generation_screen.dart';
 import 'package:genio_ai/features/login/presentation/widgets/text_auth.dart';
 import 'package:genio_ai/features/profile/profile_screen.dart';
-import 'package:genio_ai/features/text_summerizer/text_summerizer_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
@@ -92,19 +88,19 @@ class _OtherModelsState extends State<OtherModels> {
               context,
               icon: 'assets/images/Code Generator.png',
               title: 'Code Generator',
-              route: CodeGenerator.routeName
+              route: NewChatBot.routeName
             ),
             _buildFeatureTile(
               context,
               icon: 'assets/images/Email Writer.png',
               title: 'Email Writer',
-                route: EmailWriter.routeName
+                route: NewChatBot.routeName
             ),
             _buildFeatureTile(
               context,
               icon: 'assets/images/Text Summarizer.png',
               title: 'Text Summarizer',
-              route: TextSummarizer.routeName
+              route: NewChatBot.routeName
             ),
             /*
             _buildFeatureTile(
@@ -118,7 +114,7 @@ class _OtherModelsState extends State<OtherModels> {
               context,
               icon: 'assets/images/Essay Writer.png',
               title: 'Essay Writer',
-              route: EssayWriter.routeName
+              route: NewChatBot.routeName
             ),
           ],
         ),
@@ -134,19 +130,10 @@ class _OtherModelsState extends State<OtherModels> {
           final prefs = await SharedPreferences.getInstance();
           final newChatId = const Uuid().v4();
 
-          // نحفظ حسب الموديل
           if (route == NewChatBot.routeName) {
             await prefs.setString('chatId_chatbot', newChatId);
-          } else if (route == EssayWriter.routeName) {
-            await prefs.setString('chatId_essay', newChatId);
-          } else if (route == CodeGenerator.routeName) {
-            await prefs.setString('chatId_code', newChatId);
-          } else if (route == EmailWriter.routeName) {
-            await prefs.setString('chatId_email', newChatId);
           } else if (route == ImageGeneration.routeName) {
             await prefs.setString('chatId_image_generation', newChatId);
-          } else if (route == TextSummarizer.routeName) {
-            await prefs.setString('chatId_summary', newChatId);
           }
 
           Navigator.pushNamed(

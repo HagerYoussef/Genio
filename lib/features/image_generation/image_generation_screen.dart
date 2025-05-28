@@ -14,6 +14,9 @@ import '../home_screen/homescreen.dart';
 import '../login/presentation/widgets/text_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:web_socket_channel/status.dart' as status;
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class ImageGeneration extends StatefulWidget {
   const ImageGeneration({super.key});
@@ -25,176 +28,113 @@ class ImageGeneration extends StatefulWidget {
 
 class _ImageGenerationState extends State<ImageGeneration> {
   final TextEditingController _controller = TextEditingController();
-  List<Map<String, String>> _messages = [];
+  final List<Map<String, String>> _messages = [];
+  late IO.Socket _socket;
+  String? _chatId;
   final ScrollController _scrollController = ScrollController();
-  String chatHistoryKey = 'image_generation';
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadOrCreateChatId();
-    });
+    _loadOrCreateChatId();
+    _connectToServer();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    Future.microtask(() async {
-      final prefs = await SharedPreferences.getInstance();
-      final args = ModalRoute.of(context)?.settings.arguments;
-
-      if (args != null && args is Map && args.containsKey('chatId')) {
-        _chatId = args['chatId'];
-        await prefs.setString("chatId_image_generation", _chatId!);
-        print("📥 Using passed chatId for ImageGeneration: $_chatId");
-      } else {
-        _chatId = prefs.getString("chatId_image_generation");
-
-        if (_chatId == null || _chatId!.isEmpty) {
-          _chatId = const Uuid().v4();
-          await prefs.setString("chatId_image_generation", _chatId!);
-          print("🆕 Created new image chatId: $_chatId");
-        } else {
-          print("📦 Loaded saved image chatId: $_chatId");
-        }
-      }
-      await _loadChatHistory();
-    });
-  }
-
-  void _initializeChat() {
-    Future.microtask(() async {
-      final prefs = await SharedPreferences.getInstance();
-      final passedChatId = ModalRoute.of(context)?.settings.arguments;
-
-      if (passedChatId is String) {
-        _chatId = passedChatId;
-        print("📥 Using chatId from arguments: $_chatId");
-      } else {
-        _chatId = const Uuid().v4();
-        print("🆕 Created new chatId: $_chatId");
-      }
-
-      // ✅ دايمًا سجل آخر chatId مفتوح
-      await prefs.setString("chatId_image_generation", _chatId!);
-
-      _loadChatHistory();
-    });
-  }
-
-  Future<void> _loadChatIdFromPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    _chatId = prefs.getString("chatId_image_generation");
-    print("📥 Loaded existing chatId from prefs: $_chatId");
-
-    if (_chatId != null) {
-      _loadChatHistory();
-    } else {
-      _chatId = const Uuid().v4();
-      await prefs.setString("chatId_image_generation", _chatId!);
-      print("🆕 Created fallback chatId: $_chatId");
-      _loadChatHistory();
-    }
-  }
-
-  String? _chatId;
   Future<void> _loadOrCreateChatId() async {
     final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString("userId");
+    final token = prefs.getString("Token");
     _chatId = prefs.getString("chatId_image_generation");
 
     if (_chatId == null || _chatId!.isEmpty) {
       _chatId = const Uuid().v4();
       await prefs.setString("chatId_image_generation", _chatId!);
-      print("🆕 Created new chatId: $_chatId");
-    } else {
-      print("📦 Loaded existing chatId: $_chatId");
     }
 
-    await _loadChatHistory();
+    if (userId != null && token != null) {
+      try {
+        final response = await http.get(
+          Uri.parse("https://back-end-api.genio.ae/api/user/chat/$_chatId"),
+          headers: {"Authorization": "Bearer $token"},
+        );
+        if (response.statusCode == 200) {
+          final List data = jsonDecode(response.body);
+          setState(() {
+            _messages.clear();
+            for (var chat in data) {
+              _messages.add({"text": chat['question'], "sender": "user"});
+              _messages.add({"text": chat['answer'], "sender": "ai"});
+            }
+          });
+        }
+      } catch (e) {
+        debugPrint("❌ Error loading chat: $e");
+      }
+    }
   }
 
-  Future<void> _saveChatHistory() async {
-    final prefs = await SharedPreferences.getInstance();
-    final historyJson = jsonEncode(_messages);
-    await prefs.setString('chat_history_$_chatId', historyJson);
-    print("💾 Saving to: chat_history_$_chatId");
-  }
+  void _connectToServer() {
+    _socket = IO.io(
+      'wss://back-end-api.genio.ae',
+      <String, dynamic>{'transports': ['websocket'], 'autoConnect': false},
+    );
+    _socket.connect();
 
-  Future<bool> checkImageLimit(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    final bool isProUser = prefs.getBool('is_pro_user') ?? false;
-    final int usage = prefs.getInt('image_ai_usage') ?? 0;
+    _socket.onConnect((_) => print('✅ Connected to server'));
 
-    print("🔍 Usage: $usage | isProUser: $isProUser");
+    _socket.on("aiMessage", (data) async {
+      print('🤖 AI Response: $data');
+      String message;
+      if (data is List && data.isNotEmpty) {
+        message = data[0].toString();
+      } else if (data is String) {
+        message = data;
+      } else if (data is Map && data.containsKey('error')) {
+        message = "⚠️ ${data['error']}";
+      } else {
+        message = data.toString();
+      }
+      final parsed = await _handleAiMessage(message);
+      setState(() => _messages.add({"text": parsed, "sender": "ai"}));
+      _scrollToBottom();
+    });
 
-    if (isProUser) {
-      return true; // لو مشترك، Unlimited
-    }
-
-    if (usage >= 2) {
-      await QuickAlert.show(
-        context: context,
-        type: QuickAlertType.warning,
-        title: "Limit Reached",
-        text: "You've reached the free usage limit. Please subscribe to continue.",
-        confirmBtnText: 'Subscribe Now',
-        confirmBtnColor: const Color(0xFF0047AB),
-        confirmBtnTextStyle: GoogleFonts.poppins(
-          fontWeight: FontWeight.w600,
-          fontSize: 16,
-          color: Colors.white,
-        ),
-        onConfirmBtnTap: () {
-          Navigator.of(context).pop();
-          Navigator.pushNamed(context, UpgradeScreen.routeName);
-        },
-      );
-      return false;
-    }
-
-    await prefs.setInt('image_ai_usage', usage + 1);
-    return true;
+    _socket.onDisconnect((_) => print("🔴 Disconnected from WebSocket server"));
+    _socket.on("connect_error", (err) => print("⚠️ Connection Error: $err"));
   }
 
   void _sendMessage() async {
-    final allowed = await checkImageLimit(context);
-    if (!allowed) return;
-
-    if (_chatId == null) {
-      print("⛔ chatId not ready yet.");
-      return;
-    }
-
-    final prompt = _controller.text.trim();
-    if (prompt.isEmpty) return;
-    await _saveChatPreviewIfNeeded(prompt);
-
+    if (_controller.text.trim().isEmpty || _chatId == null) return;
+    final message = _controller.text.trim();
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId') ?? "flutter_user";
+    _socket.emit("userMessage", [message, userId, _chatId]);
     setState(() {
-      _messages.add({"text": prompt, "sender": "user"});
+      _messages.add({"text": message, "sender": "user"});
       _controller.clear();
     });
-    await _saveChatHistory();
-    _scrollToBottom();
-
-    final imageUrl = await generateImageLinkWithGemini(prompt);
-
-    if (imageUrl != null && imageUrl.startsWith("https://image.pollinations.ai")) {
-      setState(() {
-        _messages.add({"text": imageUrl, "sender": "ai"});
-      });
-      await _saveChatHistory();
-    } else {
-      setState(() {
-        _messages.add({"text": "⚠️ Failed to generate image.", "sender": "ai"});
-      });
-    }
-
     _scrollToBottom();
   }
 
+  Future<String> _handleAiMessage(String message) async {
+    final markdownImageRegex = RegExp(r'!\[.*?\]\((.*?)\)');
+    final match = markdownImageRegex.firstMatch(message);
+    if (match != null) {
+      return match.group(1)!;
+    }
+
+    final imageNameRegex = RegExp(r'(\d+\.png)');
+    final imageMatch = imageNameRegex.firstMatch(message);
+    if (imageMatch != null) {
+      final fileName = imageMatch.group(1)!;
+      return 'https://back-end-api.genio.ae/chatImage/$fileName';
+    }
+
+    return message;
+  }
+
   void _scrollToBottom() {
-    Future.delayed(const Duration(milliseconds: 100), () {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
@@ -205,81 +145,11 @@ class _ImageGenerationState extends State<ImageGeneration> {
     });
   }
 
-  Future<String?> generateImageLinkWithGemini(String prompt) async {
-    const apiKey = 'AIzaSyCexovbqoaLZKcO4e2g3OGWyk7i7DADmp0';
-    final url = Uri.parse(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$apiKey",
-    );
-
-    final body = {
-      "contents": [
-        {
-          "role": "user",
-          "parts": [
-            {
-              "text":
-              "Generate only a direct image link in this format: https://image.pollinations.ai/prompt/{description}. The description is: $prompt"
-            }
-          ]
-        }
-      ],
-      "generationConfig": {
-        "temperature": 0.7,
-        "topK": 40,
-        "topP": 0.95,
-        "maxOutputTokens": 100,
-      }
-    };
-
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final text = data['candidates']?[0]?['content']?['parts']?[0]?['text'];
-      return text?.trim();
-    } else {
-      print("❌ Gemini Error: ${response.body}");
-      return null;
-    }
+  @override
+  void dispose() {
+    _socket.dispose();
+    super.dispose();
   }
-
-  Future<void> _loadChatHistory() async {
-    final prefs = await SharedPreferences.getInstance();
-    final historyJson = prefs.getString('chat_history_$_chatId');
-    if (historyJson != null) {
-      final List decoded = jsonDecode(historyJson);
-      setState(() {
-        _messages = decoded.map<Map<String, String>>((item) {
-          return {
-            "text": item["text"].toString(),
-            "sender": item["sender"].toString(),
-          };
-        }).toList();
-      });
-    }
-    print("📥 Loading from: chat_history_$_chatId");
-  }
-
-  Future<void> _saveChatPreviewIfNeeded(String prompt) async {
-    final prefs = await SharedPreferences.getInstance();
-    final historyRaw = prefs.getString("local_chats_preview");
-    Map<String, dynamic> allPreviews = historyRaw != null ? jsonDecode(historyRaw) : {};
-
-    if (!allPreviews.containsKey(_chatId)) {
-      allPreviews[_chatId!] = {
-        "preview": prompt.split(' ').take(10).join(' '),
-        "timestamp": DateTime.now().toIso8601String(),
-        "type": "image" // مهم علشان نستخدمه لاحقًا
-      };
-      await prefs.setString("local_chats_preview", jsonEncode(allPreviews));
-      print("📝 Saved image preview: $prompt");
-    }
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -287,7 +157,7 @@ class _ImageGenerationState extends State<ImageGeneration> {
       canPop: false,
       onPopInvoked: (didPop) {
         if (!didPop) {
-          Navigator.pushReplacementNamed(context, HomeScreen.routeName); // أو '/main'
+          Navigator.pushReplacementNamed(context, HomeScreen.routeName);
         }
       },
       child: Scaffold(
@@ -364,7 +234,7 @@ class _ImageGenerationState extends State<ImageGeneration> {
               const Padding(
                 padding: EdgeInsets.only(top: 16, bottom: 8),
                 child: TextAuth(
-                  text: "Let's turn imagination into visuals",
+                  text: 'Describe what you want to see...',
                   size: 18,
                   fontWeight: FontWeight.w600,
                   color: Color(0xff0047AB),
@@ -377,7 +247,7 @@ class _ImageGenerationState extends State<ImageGeneration> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const TextAuth(
-                      text: "Let's turn imagination into visuals",
+                      text: 'What can I help with?',
                       size: 18,
                       fontWeight: FontWeight.w600,
                       color: Color(0xff0047AB),
@@ -387,66 +257,51 @@ class _ImageGenerationState extends State<ImageGeneration> {
                   ],
                 ),
               )
-                  : ListView.builder(
+                  :ListView.builder(
                 controller: _scrollController,
-                padding: const EdgeInsets.all(12),
                 itemCount: _messages.length,
                 itemBuilder: (context, index) {
-                  bool isUser = _messages[index]['sender'] == 'user';
+                  final msg = _messages[index];
+                  final isImage = msg["text"] != null &&
+                      Uri.tryParse(msg["text"]!)?.isAbsolute == true &&
+                      (msg["text"]!.endsWith(".png") ||
+                          msg["text"]!.endsWith(".jpg") ||
+                          msg["text"]!.endsWith(".jpeg"));
+
                   return Align(
-                    alignment: isUser
+                    alignment: msg["sender"] == "user"
                         ? Alignment.centerRight
                         : Alignment.centerLeft,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: isUser
-                            ? const Color(0xff0047AB)
-                            : Colors.white,
+                        color: msg["sender"] == "user" ? const Color(0xff0047AB) : Colors.white,
                         borderRadius: BorderRadius.circular(15),
-                        boxShadow: const [
-                          BoxShadow(color: Colors.black12, blurRadius: 5)
-                        ],
+                        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 5)],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _messages[index]['text']!.startsWith("https://image.pollinations.ai")
+                          isImage
                               ? ClipRRect(
                             borderRadius: BorderRadius.circular(12),
-                            child: Image.network(_messages[index]['text']!),
+                            child: Image.network(
+                              msg["text"]!,
+                              errorBuilder: (context, error, stackTrace) => const Text("❌ Image not found"),
+                            ),
                           )
                               : MarkdownBody(
-                            data: _messages[index]['text']!,
+                            data: msg["text"] ?? "",
                             styleSheet: MarkdownStyleSheet(
                               p: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w400,
                                 fontSize: 14,
-                                color: isUser ? Colors.white : Colors.black,
+                                color: msg["sender"] == "user" ? Colors.white : Colors.black,
                               ),
                               strong: const TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
-                          if (!isUser)
-                            Align(
-                              alignment: Alignment.bottomRight,
-                              child: IconButton(
-                                icon: const Icon(Icons.copy,
-                                    size: 18, color: Colors.grey),
-                                onPressed: () {
-                                  Clipboard.setData(ClipboardData(
-                                      text: _messages[index]['text']!));
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(
-                                    const SnackBar(
-                                        content: Text(
-                                            "Copied to clipboard!")),
-                                  );
-                                },
-                              ),
-                            ),
                         ],
                       ),
                     ),
@@ -492,6 +347,8 @@ class _ImageGenerationState extends State<ImageGeneration> {
               child: TextField(
                 controller: _controller,
                 onSubmitted: (_) => _sendMessage(),
+                minLines: 1,
+                maxLines: null,
                 decoration: InputDecoration(
                   hintText: "Describe what you want to see...",
                   hintStyle: GoogleFonts.poppins(

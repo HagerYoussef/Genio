@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ResetCodeRepository {
-  final String baseUrl = "https://genio-rust.vercel.app/api/resetCode";
+  final String baseUrl = "https://back-end-api.genio.ae/api/resetCode";
 
   Future<String> verifyResetCode(String userId, String resetCode) async {
     final url = Uri.parse("$baseUrl/$userId");
